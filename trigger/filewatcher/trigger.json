@@ -1,7 +1,7 @@
 {
     "name": "filewatcher",
     "type": "flogo:trigger",
-    "ref": "github.com/mazinga/example/trigger/filewatcher",
+    "ref": "github.com/maginga/example/trigger/filewatcher",
     "version": "0.0.1",
     "title": "File Watcher",
     "author": "example",
