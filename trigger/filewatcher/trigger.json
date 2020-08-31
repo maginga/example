@@ -1,0 +1,27 @@
+{
+    "name": "filewatcher",
+    "type": "flogo:trigger",
+    "ref": "github.com/mazinga/example/filewatcher",
+    "version": "0.0.1",
+    "title": "File Watcher",
+    "author": "example",
+    "description": "filewatcher",
+    "homepage": "",
+  "settings":[
+  ],
+    "outputs": [
+      {
+        "name": "filename",
+        "type": "string"
+      }
+    ],
+    "handler": {
+      "settings": [
+        {
+          "name": "dirName",
+          "type": "string",
+          "required" : true
+        }
+      ]
+    }
+  }
