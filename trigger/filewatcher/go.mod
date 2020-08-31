@@ -1,4 +1,4 @@
-module bistel.com/trigger/filewatcher/v0
+module github.com/maginga/example/trigger/filewatcher
 
 go 1.15
 
