@@ -4,91 +4,102 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/TIBCOSoftware/flogo-lib/core/trigger"
-	"github.com/TIBCOSoftware/flogo-lib/logger"
 	"github.com/fsnotify/fsnotify"
+	"github.com/project-flogo/core/data/metadata"
+	"github.com/project-flogo/core/support/log"
+	"github.com/project-flogo/core/trigger"
 )
 
-var log = logger.GetLogger("trigger-file-watcher")
+var triggerMd = trigger.NewMetadata(&HandlerSettings{}, &Output{})
 
-type FileWatcherTrigger struct {
-	metadata *trigger.Metadata
-	handlers []*trigger.Handler
+func init() {
+	_ = trigger.Register(&Trigger{}, &Factory{})
+}
+
+type Trigger struct {
+	settings *Settings
+	handlers []trigger.Handler
 	config   *trigger.Config
+	logger   log.Logger
 }
 
-func NewFactory(md *trigger.Metadata) trigger.Factory {
-	return &FileWatcherFactory{metadata: md}
+type Factory struct {
 }
 
-type FileWatcherFactory struct {
-	metadata *trigger.Metadata
+func (*Factory) New(config *trigger.Config) (trigger.Trigger, error) {
+	s := &Settings{}
+	err := metadata.MapToStruct(config.Settings, s, true)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Trigger{settings: s}, nil
 }
 
-func (t *FileWatcherFactory) New(config *trigger.Config) trigger.Trigger {
-	return &FileWatcherTrigger{metadata: t.metadata, config: config}
+func (*Factory) Metadata() *trigger.Metadata {
+	return triggerMd
 }
 
-func (t *FileWatcherTrigger) Metadata() *trigger.Metadata {
-	return t.metadata
-}
-
-func (t *FileWatcherTrigger) Initialize(ctx trigger.InitContext) error {
+func (t *Trigger) Initialize(ctx trigger.InitContext) error {
 	t.handlers = ctx.GetHandlers()
+	t.logger = ctx.Logger()
 	return nil
 }
 
-func (t *FileWatcherTrigger) Start() error {
-	log.Debug("Start")
+func (t *Trigger) Start() error {
+	t.logger.Debug("Start")
 	handlers := t.handlers
-	log.Debug("Processing handlers")
+	t.logger.Debug("Processing handlers")
 
 	for _, handler := range handlers {
-		t.startTrigger(handler)
+		fmt.Println("Starting File watching process")
+
+		s := &HandlerSettings{}
+		err := metadata.MapToStruct(handler.Settings(), s, true)
+		if err != nil {
+			t.logger.Error("Error metadata: ", err.Error())
+		}
+
+		watcher, err := fsnotify.NewWatcher()
+		if err != nil {
+			t.logger.Error(err)
+		}
+		defer watcher.Close()
+
+		done := make(chan bool)
+		go func() {
+			for {
+				select {
+				case event := <-watcher.Events:
+
+					if event.Op&fsnotify.Write == fsnotify.Write {
+						trgData := make(map[string]interface{})
+						trgData["filename"] = event.Name
+						response, err := handler.Handle(context.Background(), trgData)
+
+						fmt.Println("modified file:", event.Name)
+						if err != nil {
+							t.logger.Error("Error starting action: ", err.Error())
+						} else {
+							t.logger.Debugf("Action call successful: %v", response)
+						}
+					}
+				case err := <-watcher.Errors:
+					fmt.Println("error:", err)
+				}
+			}
+		}()
+
+		err = watcher.Add(s.dirName)
+		if err != nil {
+			t.logger.Error(err)
+		}
+		<-done
+
 	}
 	return nil
 }
 
-func (t *FileWatcherTrigger) startTrigger(handler *trigger.Handler) {
-	fmt.Println("Starting File watching process")
-	dirName := handler.GetStringSetting("dirName")
-	watcher, err := fsnotify.NewWatcher()
-	if err != nil {
-		log.Error(err)
-	}
-	defer watcher.Close()
-
-	done := make(chan bool)
-	go func() {
-		for {
-			select {
-			case event := <-watcher.Events:
-
-				if event.Op&fsnotify.Write == fsnotify.Write {
-					trgData := make(map[string]interface{})
-					trgData["filename"] = event.Name
-					response, err := handler.Handle(context.Background(), trgData)
-
-					fmt.Println("modified file:", event.Name)
-					if err != nil {
-						log.Error("Error starting action: ", err.Error())
-					} else {
-						log.Debugf("Action call successful: %v", response)
-					}
-				}
-			case err := <-watcher.Errors:
-				fmt.Println("error:", err)
-			}
-		}
-	}()
-
-	err = watcher.Add(dirName)
-	if err != nil {
-		log.Error(err)
-	}
-	<-done
-}
-
-func (t *FileWatcherTrigger) Stop() error {
+func (t *Trigger) Stop() error {
 	return nil
 }
