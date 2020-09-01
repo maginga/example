@@ -82,7 +82,7 @@ func (t *Trigger) Start() error {
 			}
 		}()
 
-		err = watcher.Add(s.dirName)
+		err = watcher.Add(s.DirName)
 		if err != nil {
 			t.logger.Error(err)
 		}
