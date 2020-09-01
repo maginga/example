@@ -5,23 +5,23 @@ import (
 )
 
 type HandlerSettings struct {
-	dirName string `md:"dirName"` // directory name for watching
+	DirName string `md:"dirName"` // directory name for watching
 }
 
 type Output struct {
-	fileName string `md:"fileName"` // file name to be changed.
+	FileName string `md:"fileName"` // file name to be changed.
 }
 
 func (o *Output) ToMap() map[string]interface{} {
 	return map[string]interface{}{
-		"fileName": o.fileName,
+		"fileName": o.FileName,
 	}
 }
 
 func (o *Output) FromMap(values map[string]interface{}) error {
 
 	var err error
-	o.fileName, err = coerce.ToString(values["fileName"])
+	o.FileName, err = coerce.ToString(values["fileName"])
 	if err != nil {
 		return err
 	}
