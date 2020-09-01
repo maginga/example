@@ -17,7 +17,6 @@ func init() {
 }
 
 type Trigger struct {
-	settings *Settings
 	handlers []trigger.Handler
 	config   *trigger.Config
 	logger   log.Logger
@@ -27,13 +26,7 @@ type Factory struct {
 }
 
 func (*Factory) New(config *trigger.Config) (trigger.Trigger, error) {
-	s := &Settings{}
-	err := metadata.MapToStruct(config.Settings, s, true)
-	if err != nil {
-		return nil, err
-	}
-
-	return &Trigger{settings: s}, nil
+	return &Trigger{config: config}, nil
 }
 
 func (*Factory) Metadata() *trigger.Metadata {
