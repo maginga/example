@@ -67,7 +67,7 @@ func (t *Trigger) Start() error {
 
 					if event.Op&fsnotify.Write == fsnotify.Write {
 						trgData := make(map[string]interface{})
-						trgData["filename"] = event.Name
+						trgData["fileName"] = event.Name
 						response, err := handler.Handle(context.Background(), trgData)
 
 						fmt.Println("modified file:", event.Name)
