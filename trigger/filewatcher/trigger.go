@@ -65,7 +65,7 @@ func (t *Trigger) Start() error {
 				case event := <-watcher.Events:
 					if event.Op&fsnotify.Write == fsnotify.Write {
 						trgData := make(map[string]interface{})
-						trgData["fileName"] = s.DirName + "/" + event.Name
+						trgData["fileName"] = event.Name
 						response, err := handler.Handle(context.Background(), trgData)
 
 						t.logger.Info("modified file:", event.Name)
