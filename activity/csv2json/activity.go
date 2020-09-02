@@ -58,7 +58,7 @@ func (a *Activity) Eval(context activity.Context) (done bool, err error) {
 			var json string
 			values := []string{}
 			for i := range header {
-				values[i] = header[i] + ":" + "\"" + record[i] + "\""
+				values = append(values, header[i]+":"+"\""+record[i]+"\"")
 			}
 			json = "{" + strings.Join(values, ",") + "}"
 			rows = append(rows, json)
