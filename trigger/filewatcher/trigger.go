@@ -41,10 +41,10 @@ func (t *Trigger) Initialize(ctx trigger.InitContext) error {
 func (t *Trigger) Start() error {
 	t.logger.Debug("Start")
 	handlers := t.handlers
-	t.logger.Debug("Processing handlers")
 
+	t.logger.Debug("Processing handlers")
 	for _, handler := range handlers {
-		fmt.Println("Starting File watching process")
+		t.logger.Info("Starting File watching process...")
 
 		s := &HandlerSettings{}
 		err := metadata.MapToStruct(handler.Settings(), s, true)
@@ -63,13 +63,12 @@ func (t *Trigger) Start() error {
 			for {
 				select {
 				case event := <-watcher.Events:
-
 					if event.Op&fsnotify.Write == fsnotify.Write {
 						trgData := make(map[string]interface{})
-						trgData["fileName"] = event.Name
+						trgData["fileName"] = s.DirName + "/" + event.Name
 						response, err := handler.Handle(context.Background(), trgData)
 
-						fmt.Println("modified file:", event.Name)
+						t.logger.Info("modified file:", event.Name)
 						if err != nil {
 							t.logger.Error("Error starting action: ", err.Error())
 						} else {

@@ -19,7 +19,6 @@ func (o *Output) ToMap() map[string]interface{} {
 }
 
 func (o *Output) FromMap(values map[string]interface{}) error {
-
 	var err error
 	o.FileName, err = coerce.ToString(values["fileName"])
 	if err != nil {

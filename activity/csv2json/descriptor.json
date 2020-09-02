@@ -1,0 +1,22 @@
+{
+    "name": "flogo-csv2json",
+    "type": "flogo:activity",
+    "ref": "github.com/maginga/example/activity/csv2json",
+    "version": "0.10.0",
+    "title": "CSV2JSON Activity",
+    "description": "Converts given CSV into JSON",
+    "homepage": "",
+    "input": [
+      {
+        "name": "fileName",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "output": [
+      {
+        "name": "jsonMessages",
+        "type": "object"
+      }
+    ]
+  }
