@@ -65,7 +65,9 @@ func (a *Activity) Eval(context activity.Context) (done bool, err error) {
 		}
 	}
 
-	err = context.SetOutput("jsonMessages", rows)
+	output := &Output{}
+	output.Value["message"] = rows
+	err = context.SetOutputObject(output)
 	if err != nil {
 		return false, err
 	}
