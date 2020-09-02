@@ -2,7 +2,6 @@ package filewatcher
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/project-flogo/core/data/metadata"
@@ -39,13 +38,10 @@ func (t *Trigger) Initialize(ctx trigger.InitContext) error {
 }
 
 func (t *Trigger) Start() error {
-	t.logger.Debug("Start")
+	t.logger.Debug("Starting trigger.")
+
 	handlers := t.handlers
-
-	t.logger.Debug("Processing handlers")
 	for _, handler := range handlers {
-		t.logger.Info("Starting File watching process...")
-
 		s := &HandlerSettings{}
 		err := metadata.MapToStruct(handler.Settings(), s, true)
 		if err != nil {
@@ -66,17 +62,17 @@ func (t *Trigger) Start() error {
 					if event.Op&fsnotify.Write == fsnotify.Write {
 						trgData := make(map[string]interface{})
 						trgData["fileName"] = event.Name
+						t.logger.Info("File change event was triggered. Modified file: ", event.Name)
 						response, err := handler.Handle(context.Background(), trgData)
-
-						t.logger.Info("modified file:", event.Name)
 						if err != nil {
 							t.logger.Error("Error starting action: ", err.Error())
 						} else {
-							t.logger.Debugf("Action call successful: %v", response)
+							t.logger.Info("Action was successfully called.")
+							t.logger.Debugf("Action Response: %v", response)
 						}
 					}
 				case err := <-watcher.Errors:
-					fmt.Println("error:", err)
+					t.logger.Error("Error: ", err.Error())
 				}
 			}
 		}()

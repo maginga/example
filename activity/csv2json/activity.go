@@ -24,7 +24,8 @@ func (a *Activity) Metadata() *activity.Metadata {
 }
 
 func (a *Activity) Eval(context activity.Context) (done bool, err error) {
-	context.Logger().Debug("Executing CSV2JSON activity")
+	logger := context.Logger()
+	logger.Info("Executing CSV2JSON activity")
 
 	input := &Input{}
 	err = context.GetInputObject(input)
@@ -54,6 +55,7 @@ func (a *Activity) Eval(context activity.Context) (done bool, err error) {
 
 		if len(header) == 0 {
 			header = record
+			logger.Info("csv headers: ", header)
 		} else {
 			var json string
 			values := []string{}
@@ -65,12 +67,13 @@ func (a *Activity) Eval(context activity.Context) (done bool, err error) {
 		}
 	}
 
+	logger.Info("rows: ", len(rows))
 	output := &Output{Message: rows}
 	err = context.SetOutputObject(output)
 	if err != nil {
 		return false, err
 	}
 
-	context.Logger().Debug("CSV2JSON activity completed")
+	logger.Info("CSV2JSON activity completed")
 	return true, nil
 }
