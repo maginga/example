@@ -55,7 +55,7 @@ func (a *Activity) Eval(context activity.Context) (done bool, err error) {
 
 		if len(header) == 0 {
 			header = record
-			logger.Info("csv headers: ", header)
+			// logger.Debug("csv headers: ", header)
 		} else {
 			var json string
 			values := []string{}

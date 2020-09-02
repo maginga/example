@@ -1,7 +1,7 @@
 {
   "name": "filewatcher",
   "type": "flogo:trigger",
-  "version": "0.0.16",
+  "version": "0.0.1",
   "title": "File Watcher",
   "author": "example",
   "description": "I have an usecase for reading a File on the arrival of the File in a directory.",
