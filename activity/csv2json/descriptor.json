@@ -15,7 +15,7 @@
     ],
     "output": [
       {
-        "name": "jsonMessage",
+        "name": "message",
         "type": "object"
       }
     ]
