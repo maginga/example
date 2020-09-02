@@ -25,18 +25,18 @@ func (i *Input) FromMap(values map[string]interface{}) error {
 }
 
 type Output struct {
-	Value map[string]interface{} `md:"message"` // The data that sent kafka
+	Message interface{} `md:"message"` // The data that sent kafka
 }
 
 func (o *Output) ToMap() map[string]interface{} {
 	return map[string]interface{}{
-		"message": o.Value,
+		"message": o.Message,
 	}
 }
 
 func (o *Output) FromMap(values map[string]interface{}) error {
 	var err error
-	o.Value, err = coerce.ToObject(values["message"])
+	o.Message, err = coerce.ToObject(values["message"])
 	if err != nil {
 		return err
 	}

@@ -65,8 +65,7 @@ func (a *Activity) Eval(context activity.Context) (done bool, err error) {
 		}
 	}
 
-	output := &Output{}
-	output.Value["message"] = rows
+	output := &Output{Message: rows}
 	err = context.SetOutputObject(output)
 	if err != nil {
 		return false, err
