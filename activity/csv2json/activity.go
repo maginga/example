@@ -40,7 +40,7 @@ func New(ctx activity.InitContext) (activity.Activity, error) {
 	if len(s.ExcludeColumns) > 0 {
 		strs := strings.Split(s.ExcludeColumns, ",")
 		//excludeColumns = make([]int, len(strs))
-		for i := range excludeColumns {
+		for i := range strs {
 			excludeColumns[i], _ = strconv.Atoi(strs[i])
 		}
 	}
