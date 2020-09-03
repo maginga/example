@@ -45,7 +45,7 @@ func New(ctx activity.InitContext) (activity.Activity, error) {
 		}
 	}
 
-	act := &Activity{timeIdx, excludeColumns}
+	act := &Activity{timeColumnIndex: timeIdx, excludeColumns: excludeColumns}
 	return act, nil
 }
 
