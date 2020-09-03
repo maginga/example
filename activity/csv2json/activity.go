@@ -89,14 +89,17 @@ func (a *Activity) Eval(context activity.Context) (done bool, err error) {
 		} else {
 			var json string
 			values := []string{}
+
+			if a.timeColumnIndex == -1 {
+				timeStr := time.Now().UTC().Format(time.RFC3339) // 2019-01-12T01:02:03Z
+				values = append(values, "event_time:\""+timeStr+"\"")
+			} else {
+				t, _ := ParseLocal(record[a.timeColumnIndex])
+				values = append(values, "event_time:\""+t.Format(time.RFC3339)+"\"")
+			}
+
 			for i := range header {
-				if a.timeColumnIndex == -1 {
-					timeStr := time.Now().UTC().Format(time.RFC3339) // 2019-01-12T01:02:03Z
-					values = append(values, "event_time:\""+timeStr+"\"")
-				} else if i == a.timeColumnIndex {
-					t, _ := ParseLocal(record[i])
-					values = append(values, "event_time:\""+t.Format(time.RFC3339)+"\"")
-				} else if contains(a.excludeColumns, i) {
+				if contains(a.excludeColumns, i) {
 					continue
 				} else {
 					values = append(values, header[i]+":"+"\""+record[i]+"\"")
