@@ -12,6 +12,7 @@ import (
 	"github.com/project-flogo/core/data/metadata"
 )
 
+// Activity define activity object
 type Activity struct {
 	timeColumnIndex int
 	excludeColumns  []int
@@ -36,16 +37,20 @@ func New(ctx activity.InitContext) (activity.Activity, error) {
 		timeIdx = -1
 	}
 
-	excludeColumns := []int{}
+	var act *Activity
+
 	if len(s.ExcludeColumns) > 0 {
 		strs := strings.Split(s.ExcludeColumns, ",")
-		//excludeColumns = make([]int, len(strs))
-		for i := range strs {
+		excludeColumns := make([]int, len(strs))
+		for i := range excludeColumns {
 			excludeColumns[i], _ = strconv.Atoi(strs[i])
 		}
+
+		act = &Activity{timeColumnIndex: timeIdx, excludeColumns: excludeColumns}
+	} else {
+		act = &Activity{timeColumnIndex: timeIdx, excludeColumns: nil}
 	}
 
-	act := &Activity{timeColumnIndex: timeIdx, excludeColumns: excludeColumns}
 	return act, nil
 }
 
@@ -54,6 +59,7 @@ func (a *Activity) Metadata() *activity.Metadata {
 	return activityMd
 }
 
+// Eval evaluate
 func (a *Activity) Eval(context activity.Context) (done bool, err error) {
 	logger := context.Logger()
 	logger.Info("Executing CSV2JSON activity")
@@ -99,7 +105,7 @@ func (a *Activity) Eval(context activity.Context) (done bool, err error) {
 			}
 
 			for i := range header {
-				if contains(a.excludeColumns, i) {
+				if a.excludeColumns != nil && contains(a.excludeColumns, i) {
 					continue
 				} else {
 					values = append(values, header[i]+":"+"\""+record[i]+"\"")
