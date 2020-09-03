@@ -8,12 +8,12 @@
     "homepage": "",
     "settings":[
       {
-        "name": "TimeColumnIndex",
+        "name": "timeColumnIndex",
         "type": "string",
         "description": "This value indicates the location of the column, which is a time attribute."
       },
       {
-        "name": "ExcludeColumns",
+        "name": "excludeColumns",
         "type": "string",
         "description": "This value specifies the columns to be excluded and can be specified in multiple numbers using a comma."
       }
