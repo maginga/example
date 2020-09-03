@@ -4,19 +4,50 @@ import (
 	"encoding/csv"
 	"io"
 	"os"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/project-flogo/core/activity"
+	"github.com/project-flogo/core/data/metadata"
 )
 
 type Activity struct {
+	timeColumnIndex int
+	excludeColumns  []int
 }
 
 func init() {
-	_ = activity.Register(&Activity{})
+	_ = activity.Register(&Activity{}, New)
 }
 
 var activityMd = activity.ToMetadata(&Input{}, &Output{})
+
+// New create a new kafka activity
+func New(ctx activity.InitContext) (activity.Activity, error) {
+	s := &Settings{}
+	err := metadata.MapToStruct(ctx.Settings(), s, true)
+	if err != nil {
+		return nil, err
+	}
+
+	timeIdx, err := strconv.Atoi(s.TimeColumnIndex)
+	if err != nil {
+		timeIdx = -1
+	}
+
+	var excludeColumns []int
+	if len(s.ExcludeColumns) > 0 {
+		strs := strings.Split(s.ExcludeColumns, ",")
+		excludeColumns = make([]int, len(strs))
+		for i := range excludeColumns {
+			excludeColumns[i], _ = strconv.Atoi(strs[i])
+		}
+	}
+
+	act := &Activity{timeIdx, excludeColumns}
+	return act, nil
+}
 
 // Metadata returns the activity's metadata
 func (a *Activity) Metadata() *activity.Metadata {
@@ -55,12 +86,21 @@ func (a *Activity) Eval(context activity.Context) (done bool, err error) {
 
 		if len(header) == 0 {
 			header = record
-			// logger.Debug("csv headers: ", header)
 		} else {
 			var json string
 			values := []string{}
 			for i := range header {
-				values = append(values, header[i]+":"+"\""+record[i]+"\"")
+				if a.timeColumnIndex == -1 {
+					timeStr := time.Now().UTC().Format(time.RFC3339) // 2019-01-12T01:02:03Z
+					values = append(values, "event_time:\""+timeStr+"\"")
+				} else if i == a.timeColumnIndex {
+					t, _ := ParseLocal(record[i])
+					values = append(values, "event_time:\""+t.Format(time.RFC3339)+"\"")
+				} else if contains(a.excludeColumns, i) {
+					continue
+				} else {
+					values = append(values, header[i]+":"+"\""+record[i]+"\"")
+				}
 			}
 			json = "{" + strings.Join(values, ",") + "}"
 			rows = append(rows, json)
@@ -76,4 +116,13 @@ func (a *Activity) Eval(context activity.Context) (done bool, err error) {
 
 	logger.Info("CSV2JSON activity completed")
 	return true, nil
+}
+
+func contains(s []int, e int) bool {
+	for _, a := range s {
+		if a == e {
+			return true
+		}
+	}
+	return false
 }

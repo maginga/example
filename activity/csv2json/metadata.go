@@ -4,6 +4,11 @@ import (
 	"github.com/project-flogo/core/data/coerce"
 )
 
+type Settings struct {
+	TimeColumnIndex string `md:"timeColumnIndex"` // The time column in CSV file.
+	ExcludeColumns  string `md:"excludeColumns"`  // Columns to be exclude.
+}
+
 type Input struct {
 	FileName string `md:"fileName"` //
 }

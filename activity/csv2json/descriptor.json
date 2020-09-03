@@ -6,6 +6,18 @@
     "title": "CSV2JSON Activity",
     "description": "Converts given CSV into JSON",
     "homepage": "",
+    "settings":[
+      {
+        "name": "TimeColumnIndex",
+        "type": "string",
+        "description": "This value indicates the location of the column, which is a time attribute."
+      },
+      {
+        "name": "ExcludeColumns",
+        "type": "string",
+        "description": "This value specifies the columns to be excluded and can be specified in multiple numbers using a comma."
+      }
+    ],
     "input": [
       {
         "name": "fileName",
