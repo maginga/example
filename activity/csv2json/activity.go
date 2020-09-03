@@ -95,8 +95,8 @@ func (a *Activity) Eval(context activity.Context) (done bool, err error) {
 				timeStr := time.Now().UTC().Format(time.RFC3339) // 2019-01-12T01:02:03Z
 				values = append(values, "event_time:\""+timeStr+"\"")
 			} else {
-				t, _ := ParseLocal(record[timeColIndex])
-				values = append(values, "event_time:\""+t.Format(time.RFC3339)+"\"")
+				//t, _ := ParseLocal(record[timeColIndex])
+				//values = append(values, "event_time:\""+t.Format(time.RFC3339)+"\"")
 			}
 
 			for i := range header {
