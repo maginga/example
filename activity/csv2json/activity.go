@@ -36,10 +36,10 @@ func New(ctx activity.InitContext) (activity.Activity, error) {
 		timeIdx = -1
 	}
 
-	var excludeColumns []int
+	excludeColumns := []int{}
 	if len(s.ExcludeColumns) > 0 {
 		strs := strings.Split(s.ExcludeColumns, ",")
-		excludeColumns = make([]int, len(strs))
+		//excludeColumns = make([]int, len(strs))
 		for i := range excludeColumns {
 			excludeColumns[i], _ = strconv.Atoi(strs[i])
 		}
