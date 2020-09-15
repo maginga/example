@@ -2,6 +2,8 @@ package filewatcher
 
 import (
 	"context"
+	"fmt"
+	"strconv"
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/project-flogo/core/data/metadata"
@@ -34,17 +36,12 @@ func (*Factory) Metadata() *trigger.Metadata {
 func (t *Trigger) Initialize(ctx trigger.InitContext) error {
 	t.handlers = ctx.GetHandlers()
 	t.logger = ctx.Logger()
+	t.logger.Info("handlers: " + strconv.Itoa(len(t.handlers)))
 	return nil
 }
 
 func (t *Trigger) Start() error {
-	t.logger.Info("Starting trigger.")
-
-	watcher, err := fsnotify.NewWatcher()
-	if err != nil {
-		t.logger.Error(err)
-	}
-	defer watcher.Close()
+	t.logger.Info("Processing handlers.")
 
 	for _, handler := range t.handlers {
 		s := &HandlerSettings{}
@@ -52,6 +49,12 @@ func (t *Trigger) Start() error {
 		if err != nil {
 			t.logger.Error("Error metadata: ", err.Error())
 		}
+
+		watcher, err := fsnotify.NewWatcher()
+		if err != nil {
+			t.logger.Error(err)
+		}
+		defer watcher.Close()
 
 		done := make(chan bool)
 		go func() {
@@ -89,4 +92,45 @@ func (t *Trigger) Start() error {
 
 func (t *Trigger) Stop() error {
 	return nil
+}
+
+func (t *Trigger) startTrigger(handler *trigger.Handler) {
+
+	fmt.Println("Starting File watching process")
+	dirName := handler.GetStringSetting("dirName")
+	watcher, err := fsnotify.NewWatcher()
+	if err != nil {
+		log.Error(err)
+	}
+	defer watcher.Close()
+
+	done := make(chan bool)
+	go func() {
+		for {
+			select {
+			case event := <-watcher.Events:
+
+				if event.Op&fsnotify.Write == fsnotify.Write {
+					trgData := make(map[string]interface{})
+					trgData["filename"] = event.Name
+					response, err := handler.Handle(context.Background(), trgData)
+
+					fmt.Println("modified file:", event.Name)
+					if err != nil {
+						log.Error("Error starting action: ", err.Error())
+					} else {
+						log.Debugf("Action call successful: %v", response)
+					}
+				}
+			case err := <-watcher.Errors:
+				fmt.Println("error:", err)
+			}
+		}
+	}()
+
+	err = watcher.Add(dirName)
+	if err != nil {
+		log.Error(err)
+	}
+	<-done
 }
