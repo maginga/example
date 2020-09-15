@@ -2,7 +2,6 @@ package filewatcher
 
 import (
 	"context"
-	"fmt"
 	"strconv"
 
 	"github.com/fsnotify/fsnotify"
@@ -92,45 +91,4 @@ func (t *Trigger) Start() error {
 
 func (t *Trigger) Stop() error {
 	return nil
-}
-
-func (t *Trigger) startTrigger(handler *trigger.Handler) {
-
-	fmt.Println("Starting File watching process")
-	dirName := handler.GetStringSetting("dirName")
-	watcher, err := fsnotify.NewWatcher()
-	if err != nil {
-		log.Error(err)
-	}
-	defer watcher.Close()
-
-	done := make(chan bool)
-	go func() {
-		for {
-			select {
-			case event := <-watcher.Events:
-
-				if event.Op&fsnotify.Write == fsnotify.Write {
-					trgData := make(map[string]interface{})
-					trgData["filename"] = event.Name
-					response, err := handler.Handle(context.Background(), trgData)
-
-					fmt.Println("modified file:", event.Name)
-					if err != nil {
-						log.Error("Error starting action: ", err.Error())
-					} else {
-						log.Debugf("Action call successful: %v", response)
-					}
-				}
-			case err := <-watcher.Errors:
-				fmt.Println("error:", err)
-			}
-		}
-	}()
-
-	err = watcher.Add(dirName)
-	if err != nil {
-		log.Error(err)
-	}
-	<-done
 }
