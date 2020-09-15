@@ -38,10 +38,9 @@ func (t *Trigger) Initialize(ctx trigger.InitContext) error {
 }
 
 func (t *Trigger) Start() error {
-	t.logger.Debug("Starting trigger.")
+	t.logger.Info("Starting trigger.")
 
-	handlers := t.handlers
-	for _, handler := range handlers {
+	for _, handler := range t.handlers {
 		s := &HandlerSettings{}
 		err := metadata.MapToStruct(handler.Settings(), s, true)
 		if err != nil {
@@ -53,6 +52,12 @@ func (t *Trigger) Start() error {
 			t.logger.Error(err)
 		}
 		defer watcher.Close()
+
+		err = watcher.Add(s.DirName)
+		if err != nil {
+			t.logger.Error(err)
+		}
+		t.logger.Info("Watching : " + s.DirName)
 
 		done := make(chan bool)
 		go func() {
@@ -77,12 +82,7 @@ func (t *Trigger) Start() error {
 			}
 		}()
 
-		err = watcher.Add(s.DirName)
-		if err != nil {
-			t.logger.Error(err)
-		}
 		<-done
-
 	}
 	return nil
 }
