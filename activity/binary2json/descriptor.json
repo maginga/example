@@ -1,0 +1,91 @@
+{
+    "name": "flogo-binary2json",
+    "type": "flogo:activity",
+    "ref": "github.com/maginga/example/activity/binary2json",
+    "version": "0.0.1",
+    "title": "BINARY2JSON Activity",
+    "description": "Converts given binary into JSON",
+    "homepage": "",
+    "settings":[
+      {
+        "name": "columns",
+        "type": "object",
+        "description": "This value indicates the count of data.",
+        "properties": [
+            {
+              "name": 1,
+              "type": "string",
+              "value": "MFC01 Flow Set",
+              "description": "Column 1"
+            },
+            {
+              "name": 2,
+              "type": "string",
+              "value": "MFC01 Flow",
+              "description": "Column 2"
+            },
+            {
+                "name": 3,
+                "type": "string",
+                "value": "MFC01 Pressure",
+                "description": "Column 3"
+            },
+            {
+                "name": 4,
+                "type": "string",
+                "value": "MFC02 Flow Set",
+                "description": "Column 4"
+            },
+            {
+                "name": 5,
+                "type": "string",
+                "value": "MFC02 Flow",
+                "description": "Column 5"
+            },
+            {
+                "name": 6,
+                "type": "string",
+                "value": "MFC02 Pressure",
+                "description": "Column 6"
+            },
+            {
+                "name": 7,
+                "type": "string",
+                "value": "MFC03 Flow Set",
+                "description": "Column 7"
+            },
+            {
+                "name": 8,
+                "type": "string",
+                "value": "MFC03 Flow",
+                "description": "Column 8"
+            },
+            {
+                "name": 9,
+                "type": "string",
+                "value": "",
+                "description": "Column 9"
+            },
+            {
+                "name": 10,
+                "type": "string",
+                "value": "",
+                "description": "Column 10"
+            }
+        ]
+      }
+    ],
+    "input": [
+      {
+        "name": "fileName",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "output": [
+      {
+        "name": "message",
+        "type": "object"
+      }
+    ]
+  }
