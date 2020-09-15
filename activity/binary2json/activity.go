@@ -70,10 +70,10 @@ func (a *Activity) Eval(context activity.Context) (done bool, err error) {
 	}
 	defer file.Close()
 
-	columns := make(map[int]string)
+	columns := make(map[string]interface{})
 	for key, value := range a.settings.Columns {
 		columns[key] = value
-		logger.Info(strconv.Itoa(key) + ":" + value)
+		logger.Info(key + ":" + fmt.Sprintf("%v", value))
 	}
 
 	headerSize := 32 // bytes
@@ -102,7 +102,7 @@ func (a *Activity) Eval(context activity.Context) (done bool, err error) {
 		// values := []string{}
 
 		for i := 1; i <= len(columns); i++ {
-			logger.Info(fmt.Sprintf("%v", columns[i]) + ": " + fmt.Sprintf("%v", record.data[i]))
+			logger.Info(fmt.Sprintf("%v", columns[strconv.Itoa(i)]) + ": " + fmt.Sprintf("%v", record.data[i]))
 		}
 
 		// for real := range record.data {

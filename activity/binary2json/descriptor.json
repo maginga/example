@@ -9,7 +9,7 @@
     "settings":[
       {
         "name": "columns",
-        "type": "params",
+        "type": "object",
         "description": "This value indicates the count of data."
       }
     ],
