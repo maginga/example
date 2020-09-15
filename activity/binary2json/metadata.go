@@ -6,7 +6,7 @@ import (
 
 // Settings setting struct
 type Settings struct {
-	Columns map[int]interface{} `md:"columns"` // data columns
+	Columns map[int]string `md:"columns"` // The column parameters
 }
 
 // Input input

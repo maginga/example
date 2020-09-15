@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strconv"
 
 	"github.com/project-flogo/core/activity"
 	"github.com/project-flogo/core/data/metadata"
@@ -69,7 +70,11 @@ func (a *Activity) Eval(context activity.Context) (done bool, err error) {
 	}
 	defer file.Close()
 
-	columns := a.settings.Columns
+	columns := make(map[int]string)
+	for key, value := range a.settings.Columns {
+		columns[key] = value
+		logger.Info(strconv.Itoa(key) + ":" + value)
+	}
 
 	headerSize := 32 // bytes
 	// rows := []string{}
