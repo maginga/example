@@ -42,6 +42,7 @@ func (t *Trigger) Initialize(ctx trigger.InitContext) error {
 func (t *Trigger) Start() error {
 	t.logger.Info("Processing handlers.")
 
+	done := make(chan bool)
 	for _, handler := range t.handlers {
 		s := &HandlerSettings{}
 		err := metadata.MapToStruct(handler.Settings(), s, true)
@@ -55,7 +56,6 @@ func (t *Trigger) Start() error {
 		}
 		defer watcher.Close()
 
-		done := make(chan bool)
 		go func() {
 			for {
 				select {
@@ -83,9 +83,9 @@ func (t *Trigger) Start() error {
 			t.logger.Error(err)
 		}
 		t.logger.Info("Watching : " + s.DirName)
-
-		<-done
 	}
+	<-done
+
 	return nil
 }
 
