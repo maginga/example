@@ -4,9 +4,10 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
+	"io"
 	"log"
 	"os"
-	"strconv"
+	"strings"
 
 	"github.com/project-flogo/core/activity"
 	"github.com/project-flogo/core/data/metadata"
@@ -15,19 +16,6 @@ import (
 // Activity define activity object
 type Activity struct {
 	settings *Settings
-}
-
-type Header struct {
-	totalSize uint32
-	dataCount uint32
-	datetime  string
-	null      byte
-}
-
-type Record struct {
-	data []float32
-	cr   byte
-	lf   byte
 }
 
 func init() {
@@ -76,62 +64,85 @@ func (a *Activity) Eval(context activity.Context) (done bool, err error) {
 		logger.Info(key + ":" + fmt.Sprintf("%v", value))
 	}
 
-	headerSize := 32 // bytes
-	// rows := []string{}
+	rows := []string{}
 	for {
-		header := Header{}
-		headerBytes := readNextBytes(file, headerSize)
+		var totalSize uint32
+		tsBytes, e := readNextBytes(file, 4)
+		if e != nil && e == io.EOF {
+			break
+		}
 
-		buffer1 := bytes.NewBuffer(headerBytes)
-		err = binary.Read(buffer1, binary.LittleEndian, &header)
+		tsBuffer := bytes.NewBuffer(tsBytes)
+		err = binary.Read(tsBuffer, binary.LittleEndian, &totalSize)
 		if err != nil {
 			log.Fatal("binary.Read failed", err)
 		}
 
-		record := Record{}
-		dataSize := int(header.totalSize) - headerSize
-		dataBytes := readNextBytes(file, dataSize)
-
-		buffer2 := bytes.NewBuffer(dataBytes)
-		err = binary.Read(buffer2, binary.LittleEndian, &record)
+		var dataCount uint32
+		dcBytes, _ := readNextBytes(file, 4)
+		dcBuffer := bytes.NewBuffer(dcBytes)
+		err = binary.Read(dcBuffer, binary.LittleEndian, &dataCount)
 		if err != nil {
 			log.Fatal("binary.Read failed", err)
 		}
 
-		// var json string
-		// values := []string{}
+		var dateTime [23]byte
+		dtBytes, _ := readNextBytes(file, 23)
+		dtBuffer := bytes.NewBuffer(dtBytes)
+		err = binary.Read(dtBuffer, binary.LittleEndian, &dateTime)
+		if err != nil {
+			log.Fatal("binary.Read failed", err)
+		}
+		strDateTime := string(dateTime[:23]) //BytesToString(datetime)
 
-		for i := 1; i <= len(columns); i++ {
-			logger.Info(fmt.Sprintf("%v", columns[strconv.Itoa(i)]) + ": " + fmt.Sprintf("%v", record.data[i]))
+		var null byte
+		nullBytes, _ := readNextBytes(file, 1)
+		nullBuffer := bytes.NewBuffer(nullBytes)
+		err = binary.Read(nullBuffer, binary.LittleEndian, &null)
+		if err != nil {
+			log.Fatal("binary.Read failed", err)
 		}
 
-		// for real := range record.data {
-		// 	logger.Info(real)
-		// }
-		// json = "{" + strings.Join(values, ",") + "}"
-		// rows = append(rows, json)
+		values := []string{}
+		itemCount := int(dataCount)
+		for i := 0; i < itemCount; i++ {
+			var dataPoint float32
+			dpBytes, _ := readNextBytes(file, 4)
+			dpBuffer := bytes.NewBuffer(dpBytes)
+			err = binary.Read(dpBuffer, binary.LittleEndian, &dataPoint)
+			if err != nil {
+				log.Fatal("binary.Read failed", err)
+			}
+			// values = append(values, fmt.Sprintf("%v", columns[strconv.Itoa(i)])+"="+fmt.Sprintf("%f", dataPoint))
+			values = append(values, fmt.Sprintf("%f", dataPoint))
+		}
+		json := "{event_time=" + strDateTime + "," + strings.Join(values, ",") + "}"
+		rows = append(rows, json)
+
+		var crlf []byte
+		crlfBytes, _ := readNextBytes(file, 2)
+		crlfBuffer := bytes.NewBuffer(crlfBytes)
+		err = binary.Read(crlfBuffer, binary.LittleEndian, &crlf)
+		if err != nil {
+			log.Fatal("binary.Read failed", err)
+		}
 	}
 
-	// logger.Info("rows: ", len(rows))
-	// output := &Output{Message: rows}
-	// err = context.SetOutputObject(output)
-	// if err != nil {
-	// 	return false, err
-	// }
+	logger.Info("rows: ", len(rows))
+	output := &Output{Message: rows}
+	err = context.SetOutputObject(output)
+	if err != nil {
+		return false, err
+	}
 
 	logger.Info("BINARY2JSON activity completed")
 	return true, nil
 }
 
-func readNextBytes(file *os.File, number int) []byte {
+func readNextBytes(file *os.File, number int) ([]byte, error) {
 	bytes := make([]byte, number)
-
 	_, err := file.Read(bytes)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	return bytes
+	return bytes, err
 }
 
 func contains(s []int, e int) bool {
