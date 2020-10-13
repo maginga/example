@@ -58,12 +58,11 @@ func (act *Activity) Eval(ctx activity.Context) (done bool, err error) {
 		return false, fmt.Errorf("no message to publish")
 	}
 
-	message := makeMessage(input.Message.(map[string]interface{}))
-
 	pts, _ := time.ParseDuration(act.settings.PeriodOfTime)
 	time.Sleep(pts)
 
 	ctx.Logger().Debugf("sending Kafka message")
+	message := makeMessage(input.Message.(map[string]interface{}))
 
 	msg := &sarama.ProducerMessage{
 		Topic: act.settings.Topic,
