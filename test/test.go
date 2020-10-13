@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	fileName := "/Users/hansonjang/Documents/Grandview/APTC/Log-500items.dat"
+	fileName := "/Users/xxx/Documents/gv/APTC/Log500items.dat"
 	file, err := os.Open(fileName)
 	if err != nil {
 
