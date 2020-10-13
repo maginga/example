@@ -1,0 +1,29 @@
+{
+    "name": "flogo-binreader",
+    "type": "flogo:activity",
+    "ref": "github.com/maginga/example/activity/binreader",
+    "version": "0.0.1",
+    "title": "Binary Reader Activity",
+    "description": "Reading from binary file",
+    "homepage": "",
+    "settings":[
+      {
+        "name": "columns",
+        "type": "object",
+        "description": "This value indicates the count of data."
+      }
+    ],
+    "input": [
+      {
+        "name": "fileName",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "output": [
+      {
+        "name": "message",
+        "type": "object"
+      }
+    ]
+  }

@@ -1,0 +1,49 @@
+{
+    "name": "flogo-csvreader",
+    "type": "flogo:activity",
+    "ref": "github.com/maginga/example/activity/csvreader",
+    "version": "0.0.1",
+    "title": "CSV Reader Activity",
+    "description": "Reading given CSV",
+    "homepage": "",
+    "settings":[
+      {
+        "name": "timeColumnIndex",
+        "type": "string",
+        "description": "This value indicates the location of the column, which is a time attribute."
+      },
+      {
+        "name": "excludeColumns",
+        "type": "string",
+        "description": "This value specifies the columns to be excluded and can be specified in multiple numbers using a comma."
+      },
+      {
+        "name": "physicalAssetName",
+        "type": "string",
+        "description": "Physical Asset Name."
+      },
+      {
+        "name": "sensorName",
+        "type": "string",
+        "description": "Sensor Name."
+      },
+      {
+        "name": "sensorType",
+        "type": "string",
+        "description": "Sensor Type."
+      }
+    ],
+    "input": [
+      {
+        "name": "fileName",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "output": [
+      {
+        "name": "message",
+        "type": "object"
+      }
+    ]
+  }

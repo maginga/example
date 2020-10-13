@@ -1,0 +1,15 @@
+# apm cli
+metadata:
+  grandview-url: apm:bistel01@tcp(192.168.100.220:3306)/apmdb
+  discovery-url: polaris:bistel01@tcp(192.168.100.220:3306)/polaris_v2
+
+discovery:
+  url: 192.168.100.220:8180
+
+grandview:
+  url: 192.168.100.220:8380
+  
+stream:
+  jobServer: 192.168.100.220:8088
+  bootstrapServers: 192.168.100.220:9092
+  clientId: poc
