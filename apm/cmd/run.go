@@ -19,7 +19,6 @@ import (
 	"example/apm/client"
 	"fmt"
 	"log"
-	"os"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -34,9 +33,8 @@ For example: apm flink run [Jar ID] [Entry Class] [Arguments]
 `,
 	Args: cobra.MinimumNArgs(3),
 	Run: func(cmd *cobra.Command, args []string) {
-		logger = log.New(os.Stdout, "INFO: ", log.LstdFlags)
 		jobServer := fmt.Sprintf("%v", viper.Get("stream.jobServer"))
-		logger.Println("Job Server: " + jobServer)
+		log.Println("Job Server: " + jobServer)
 
 		JarID := args[0]
 		entryClass := args[1]
@@ -56,7 +54,7 @@ For example: apm flink run [Jar ID] [Entry Class] [Arguments]
 
 		r, err := c.RunJar(opts)
 
-		logger.Println("This Job was registered. [" + r.ID + "]")
+		log.Println("This Job was registered. [" + r.ID + "]")
 	},
 }
 

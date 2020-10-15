@@ -49,7 +49,7 @@ func New(ctx activity.InitContext) (activity.Activity, error) {
 		return nil, fmt.Errorf("only select statement is supported")
 	}
 
-	act := &Activity{db: db, dbHelper: dbHelper, sqlStatement: sqlStatement}
+	act := &Activity{db: db, dbHelper: dbHelper, sqlStatement: sqlStatement, settings: s}
 
 	if !s.DisablePrepared {
 		ctx.Logger().Debugf("Using PreparedStatement: %s", sqlStatement.PreparedStatementSQL())
@@ -64,12 +64,13 @@ func New(ctx activity.InitContext) (activity.Activity, error) {
 
 // Activity is a Counter Activity implementation
 type Activity struct {
-	dbHelper       util.DbHelper
-	db             *sql.DB
-	sqlStatement   *util.SQLStatement
-	stmt           *sql.Stmt
-	labeledResults bool
-	offsetTime     string
+	dbHelper     util.DbHelper
+	db           *sql.DB
+	sqlStatement *util.SQLStatement
+	stmt         *sql.Stmt
+	settings     *Settings
+	fromdate     string
+	todate       string
 }
 
 // Metadata implements activity.Activity.Metadata
@@ -97,13 +98,13 @@ func (a *Activity) Eval(ctx activity.Context) (done bool, err error) {
 		return false, err
 	}
 
-	in.Params["from"] = a.offsetTime
 	results, err := a.doSelect(in.Params)
 	if err != nil {
 		return false, err
 	}
 
-	err = ctx.SetOutput(ovResults, results)
+	output := &Output{Results: results}
+	err = ctx.SetOutputObject(output)
 	if err != nil {
 		return false, err
 	}
@@ -112,7 +113,6 @@ func (a *Activity) Eval(ctx activity.Context) (done bool, err error) {
 }
 
 func (a *Activity) doSelect(params map[string]interface{}) (interface{}, error) {
-
 	var err error
 	var rows *sql.Rows
 
@@ -128,13 +128,7 @@ func (a *Activity) doSelect(params map[string]interface{}) (interface{}, error) 
 
 	defer rows.Close()
 
-	var results interface{}
-
-	if a.labeledResults {
-		results, err = getLabeledResults(a.dbHelper, rows)
-	} else {
-		results, err = getResults(a.dbHelper, rows)
-	}
+	results, err := getLabeledResults(a.dbHelper, rows)
 
 	if err != nil {
 		return nil, err
@@ -157,7 +151,6 @@ func getLabeledResults(dbHelper util.DbHelper, rows *sql.Rows) ([]map[string]int
 	var results []map[string]interface{}
 
 	for rows.Next() {
-
 		values := make([]interface{}, len(columnTypes))
 		for i := range values {
 			values[i] = dbHelper.GetScanType(columnTypes[i])
@@ -179,35 +172,7 @@ func getLabeledResults(dbHelper util.DbHelper, rows *sql.Rows) ([]map[string]int
 		}
 
 		//todo do we need to do column mapping
-
 		results = append(results, resMap)
-	}
-
-	return results, rows.Err()
-}
-
-func getResults(dbHelper util.DbHelper, rows *sql.Rows) ([][]interface{}, error) {
-
-	columnTypes, err := rows.ColumnTypes()
-	if err != nil {
-		return nil, err
-	}
-
-	var results [][]interface{}
-
-	for rows.Next() {
-
-		values := make([]interface{}, len(columnTypes))
-		for i := range values {
-			values[i] = dbHelper.GetScanType(columnTypes[i])
-		}
-
-		err = rows.Scan(values...)
-		if err != nil {
-			return nil, err
-		}
-
-		results = append(results, values)
 	}
 
 	return results, rows.Err()

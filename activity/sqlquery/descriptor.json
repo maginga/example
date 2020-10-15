@@ -56,10 +56,22 @@
 			"required": false
 		},
 		{
-			"name": "labeledResults",
-			"type": "bool",
-			"description" : "Label Results",
+			"name": "timeColumnIndex",
+			"type": "string",
+			"description": "This value indicates the location of the column, which is a time attribute.",
 			"required": false
+		},
+		{
+			"name": "startOffset",
+			"type": "string",
+			"description" : "start offset time",
+			"required": true
+		},
+		{
+			"name": "batchSize",
+			"type": "string",
+			"description" : "batch size of ",
+			"required": true
 		}
 	],
 	"input": [
@@ -72,14 +84,8 @@
 	],
 	"output": [
 		{
-			"name": "columnNames",
-			"type": "any",
-			"description" : "Column Names ",
-			"required": false
-		},
-		{
 			"name": "results",
-			"type": "any",
+			"type": "object",
 			"description" : "Result of SQL Query.",
 			"required": false
 		}

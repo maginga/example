@@ -19,7 +19,6 @@ import (
 	"example/apm/client"
 	"fmt"
 	"log"
-	"os"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -29,15 +28,14 @@ import (
 // streamCmd represents the stream command
 var streamCmd = &cobra.Command{
 	Use:   "stream",
-	Short: "(11) Registers a Job to the flink cluster, and runs a Job to be registered stream job.",
+	Short: "Registers a Job to the flink cluster, and runs a Job to be registered stream job.",
 	Long: `Registers a Job to the flink cluster, and runs a Job to be registered stream job.
 For example: apm create stream [refiner, alarm, paramalarm, fdc, spc, mva, bae, current] [nest ID] [jar file]
 `,
 	Args: cobra.MinimumNArgs(3),
 	Run: func(cmd *cobra.Command, args []string) {
-		logger = log.New(os.Stdout, "INFO: ", log.LstdFlags)
 		jobServer := fmt.Sprintf("%v", viper.Get("stream.jobServer"))
-		logger.Println("Job Server: " + jobServer)
+		log.Println("Job Server: " + jobServer)
 
 		jarFile := args[2]
 
@@ -48,11 +46,11 @@ For example: apm create stream [refiner, alarm, paramalarm, fdc, spc, mva, bae, 
 		}
 
 		d, err := c.Config()
-		logger.Println("Flink Version: " + d.FlinkVersion)
+		log.Println("Flink Version: " + d.FlinkVersion)
 
 		k, err := c.Jars()
 		for _, f := range k.Files {
-			logger.Println("Existed Jars: " + f.ID)
+			log.Println("Existed Jars: " + f.ID)
 		}
 
 		u, err := c.UploadJar(jarFile)
@@ -61,15 +59,15 @@ For example: apm create stream [refiner, alarm, paramalarm, fdc, spc, mva, bae, 
 		}
 
 		if len(u.FileName) > 0 {
-			logger.Println("file location: " + u.FileName)
-			logger.Println("This Jar was uploaded.")
+			log.Println("file location: " + u.FileName)
+			log.Println("This Jar was uploaded.")
 
 			apmAddr := fmt.Sprintf("%v", viper.Get("grandview.url"))
 			nestID := args[1]
 			specURL := "http://" + apmAddr + "/api/spec/" + nestID
 
 			jarID := strings.Split(u.FileName, "/")
-			logger.Println("jar ID: " + jarID[len(jarID)-1])
+			log.Println("jar ID: " + jarID[len(jarID)-1])
 
 			opts := client.RunOpts{}
 			opts.JarID = jarID[len(jarID)-1]
@@ -129,7 +127,7 @@ For example: apm create stream [refiner, alarm, paramalarm, fdc, spc, mva, bae, 
 					"--local-repository-location", "/var/tmp/flink/current"}
 				opts.Parallelism = 1
 			} else {
-				logger.Println("Warning: There are no valid arguments.")
+				log.Println("Warning: There are no valid arguments.")
 				return
 			}
 
@@ -137,13 +135,13 @@ For example: apm create stream [refiner, alarm, paramalarm, fdc, spc, mva, bae, 
 			if err != nil {
 				panic(err)
 			}
-			logger.Println("Running Job: " + r.ID)
+			log.Println("Running Job: " + r.ID)
 		}
 	},
 }
 
 func init() {
-	createCmd.AddCommand(streamCmd)
+	tenantCmd.AddCommand(streamCmd)
 
 	// Here you will define your flags and configuration settings.
 

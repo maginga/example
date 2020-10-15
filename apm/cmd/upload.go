@@ -19,7 +19,6 @@ import (
 	"example/apm/client"
 	"fmt"
 	"log"
-	"os"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -34,9 +33,8 @@ For example: apm flink upload [Jar File Path]
 `,
 	Args: cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		logger = log.New(os.Stdout, "INFO: ", log.LstdFlags)
 		jobServer := fmt.Sprintf("%v", viper.Get("stream.jobServer"))
-		logger.Println("Job Server: " + jobServer)
+		log.Println("Job Server: " + jobServer)
 
 		jarFile := args[0]
 
@@ -47,16 +45,16 @@ For example: apm flink upload [Jar File Path]
 		}
 
 		d, err := c.Config()
-		logger.Println("Flink Version: " + d.FlinkVersion)
+		log.Println("Flink Version: " + d.FlinkVersion)
 
 		k, err := c.Jars()
 		for _, f := range k.Files {
-			logger.Println("Existed Jars: " + f.ID)
+			log.Println("Existed Jars: " + f.ID)
 		}
 
 		u, err := c.UploadJar(jarFile)
-		logger.Println("Jar ID: " + u.FileName)
-		logger.Println("This Jar was uploaded.")
+		log.Println("Jar ID: " + u.FileName)
+		log.Println("This Jar was uploaded.")
 
 	},
 }

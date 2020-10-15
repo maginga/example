@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"strconv"
 
 	"github.com/google/uuid"
 	"github.com/spf13/viper"
@@ -36,14 +37,14 @@ func CreateLocation(child string, parents string, depth string) error {
 			log.Panic(err)
 		}
 
-		stmt2 := "INSERT INTO catalog_tree " +
-			"(ancestor, descendant, depth) VALUES " +
-			"(?,?,?) "
+		// stmt2 := "INSERT INTO catalog_tree " +
+		// 	"(ancestor, descendant, depth) VALUES " +
+		// 	"(?,?,?) "
 
-		_, err = tx.Exec(stmt2, id, id, 0)
-		if err != nil {
-			log.Panic(err)
-		}
+		// _, err = tx.Exec(stmt2, id, id, 0)
+		// if err != nil {
+		// 	log.Panic(err)
+		// }
 		log.Println("Root Catalog ID: " + id)
 
 	} else {
@@ -58,14 +59,20 @@ func CreateLocation(child string, parents string, depth string) error {
 			log.Panic(err)
 		}
 
-		stmt2 := "INSERT INTO catalog_tree " +
-			"SELECT id as ancestor, '" + id + "' as descendant, " + depth +
-			" as depth FROM catalog WHERE name='" + parents + "'"
+		// stmt2 := "INSERT INTO catalog_tree " +
+		// 	"SELECT id as ancestor, '" + id + "' as descendant, " + depth +
+		// 	" as depth FROM catalog WHERE name='" + parents + "'"
 
-		_, err = tx.Exec(stmt2)
-		if err != nil {
-			log.Panic(err)
-		}
+		// _, err = tx.Exec(stmt2)
+		// if err != nil {
+		// 	log.Panic(err)
+		// }
+
+		// stmtd := "INSERT INTO catalog_tree (ancestor, descendant, depth) VALUES (?,?,?) "
+		// _, err = tx.Exec(stmtd, id, id, 0)
+		// if err != nil {
+		// 	log.Panic(err)
+		// }
 	}
 
 	stmt0 := "INSERT INTO authority (id, item_id, item_type) VALUES (?,?,?)"
@@ -83,7 +90,78 @@ func CreateLocation(child string, parents string, depth string) error {
 	return err
 }
 
+func CreateHierarchy(root string) error {
+	url := fmt.Sprintf("%v", viper.Get("metadata.grandview-url"))
+	log.Println("URL: " + url)
+	db, err := sql.Open("mysql", url)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
+
+	var catalogList = []Catalog{}
+
+	var no, id, name string
+	rows, err := db.Query("WITH RECURSIVE tree as ( " +
+		"SELECT id, name FROM catalog WHERE id='" + root + "' " +
+		"UNION " +
+		"SELECT catalog.id, catalog.name FROM catalog, tree WHERE tree.id=catalog.parent_id " +
+		") " +
+		"SELECT @rownum:=@rownum+1 No, t.* FROM tree t, (SELECT @rownum:=0) r ")
+
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		err := rows.Scan(&no, &id, &name)
+		if err != nil {
+			log.Fatal(err)
+		}
+		// log.Println("ID: " + id + ", Name: " + name)
+		catalogList = append(catalogList, Catalog{no, id, name})
+	}
+
+	tx, err := db.Begin()
+	if err != nil {
+		log.Panic(err)
+	}
+	defer tx.Rollback()
+
+	stmt2 := "INSERT INTO catalog_tree (ancestor, descendant, depth) VALUES (?,?,?) "
+
+	for _, c1 := range catalogList {
+		no, _ := strconv.Atoi(c1.No)
+		idx := 0
+		for i := no - 1; i < len(catalogList); i++ {
+
+			if c1.Id == catalogList[i].Id {
+				_, err = tx.Exec(stmt2, catalogList[i].Id, catalogList[i].Id, idx)
+				if err != nil {
+					log.Panic(err)
+				}
+			} else {
+				_, err = tx.Exec(stmt2, c1.Id, catalogList[i].Id, idx)
+				if err != nil {
+					log.Panic(err)
+				}
+			}
+			idx++
+		}
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		log.Panic(err)
+	}
+
+	log.Println("The hierarchy was created.")
+	return err
+}
+
 type Catalog struct {
+	No   string
 	Id   string
 	Name string
 }
@@ -112,7 +190,7 @@ func GetRoot() ([]Catalog, error) {
 			log.Fatal(err)
 		}
 		// log.Println("ID: " + id + ", Name: " + name)
-		catalogList = append(catalogList, Catalog{id, name})
+		catalogList = append(catalogList, Catalog{"0", id, name})
 	}
 
 	return catalogList, err
@@ -147,7 +225,7 @@ func GetNodes(root string) ([]Catalog, error) {
 			log.Fatal(err)
 		}
 		// log.Println("ID: " + id + ", Name: " + name)
-		catalogList = append(catalogList, Catalog{id, name})
+		catalogList = append(catalogList, Catalog{"0", id, name})
 	}
 
 	return catalogList, err

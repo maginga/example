@@ -10,11 +10,9 @@ type Settings struct {
 	MaxOpenConns    int    `md:"maxOpenConnections"`
 	MaxIdleConns    int    `md:"maxIdleConnections"`
 	DisablePrepared bool   `md:"disablePrepared"`
-	LabeledResults  bool   `md:"labeledResults"`
-
-	StartOffset   string `md:"startOffset,required"`
-	BatchSize     string `md:"batchSize"`
-	EmptyTryTimes int    `md:"empthTrytimes"`
+	StartOffset     string `md:"startOffset,required"`
+	BatchSize       string `md:"batchSize,required"`
+	EmptyTryTimes   int    `md:"empthTrytimes"`
 }
 
 type Input struct {
@@ -22,8 +20,8 @@ type Input struct {
 }
 
 type Output struct {
-	ColumnNames []interface{} `md:"columnNames"`
-	Results     interface{}   `md:"results"`
+	// ColumnNames []interface{} `md:"columnNames"`
+	Results interface{} `md:"results"`
 }
 
 // FromMap converts the values from a map into the struct Input
@@ -41,4 +39,20 @@ func (i *Input) ToMap() map[string]interface{} {
 	return map[string]interface{}{
 		"params": i.Params,
 	}
+}
+
+func (o *Output) ToMap() map[string]interface{} {
+	return map[string]interface{}{
+		"results": o.Results,
+	}
+}
+
+func (o *Output) FromMap(values map[string]interface{}) error {
+	var err error
+	o.Results, err = coerce.ToObject(values["results"])
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
