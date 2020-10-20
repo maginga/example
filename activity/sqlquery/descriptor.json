@@ -1,8 +1,8 @@
 {
-	"name": "sqlquery-activity",
+	"name": "custom-sqlquery-activity",
 	"type": "flogo:activity",
 	"version": "0.0.1",
-	"title": "SQL Query Activity",
+	"title": "Custom SQL Query Activity",
   	"description": "Flogo Activity for SQL",
   	"homepage": "",
 	"settings": [

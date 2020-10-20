@@ -12,7 +12,6 @@ type Settings struct {
 	DisablePrepared bool   `md:"disablePrepared"`
 	StartOffset     string `md:"startOffset,required"`
 	BatchSize       string `md:"batchSize,required"`
-	EmptyTryTimes   int    `md:"empthTrytimes"`
 }
 
 type Input struct {

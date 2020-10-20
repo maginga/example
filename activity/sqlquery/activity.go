@@ -3,6 +3,8 @@ package sqlquery
 import (
 	"database/sql"
 	"fmt"
+	"strconv"
+	"time"
 
 	"github.com/project-flogo/contrib/activity/sqlquery/util"
 	"github.com/project-flogo/core/activity"
@@ -49,7 +51,15 @@ func New(ctx activity.InitContext) (activity.Activity, error) {
 		return nil, fmt.Errorf("only select statement is supported")
 	}
 
-	act := &Activity{db: db, dbHelper: dbHelper, sqlStatement: sqlStatement, settings: s}
+	f, e := time.Parse(time.RFC3339, s.StartOffset) // "2012-11-01T22:08:41+00:00"
+	if e != nil {
+		ctx.Logger().Debug("time parsing error.")
+		return nil, e
+	}
+	min, _ := strconv.Atoi(s.BatchSize)
+	t := f.Add(time.Minute * time.Duration(min))
+
+	act := &Activity{db: db, dbHelper: dbHelper, sqlStatement: sqlStatement, settings: s, fromdate: &f, todate: &t}
 
 	if !s.DisablePrepared {
 		ctx.Logger().Debugf("Using PreparedStatement: %s", sqlStatement.PreparedStatementSQL())
@@ -69,8 +79,8 @@ type Activity struct {
 	sqlStatement *util.SQLStatement
 	stmt         *sql.Stmt
 	settings     *Settings
-	fromdate     string
-	todate       string
+	fromdate     *time.Time
+	todate       *time.Time
 }
 
 // Metadata implements activity.Activity.Metadata
@@ -98,6 +108,9 @@ func (a *Activity) Eval(ctx activity.Context) (done bool, err error) {
 		return false, err
 	}
 
+	in.Params["fromdate"] = a.fromdate.Format(time.RFC3339)
+	in.Params["todate"] = a.todate.Format(time.RFC3339)
+
 	results, err := a.doSelect(in.Params)
 	if err != nil {
 		return false, err
@@ -108,11 +121,23 @@ func (a *Activity) Eval(ctx activity.Context) (done bool, err error) {
 	if err != nil {
 		return false, err
 	}
+	ctx.Logger().Debugf("result: %v", len(results))
+
+	if len(results) > 0 {
+		lastRow := results[len(results)-1]
+		last := lastRow["event_time"]
+		f, _ := time.Parse(time.RFC3339, last.(string)) // "2012-11-01T22:08:41+00:00"
+		min, _ := strconv.Atoi(a.settings.BatchSize)
+		t := a.fromdate.Add(time.Minute * time.Duration(min))
+
+		a.fromdate = &f
+		a.todate = &t
+	}
 
 	return true, nil
 }
 
-func (a *Activity) doSelect(params map[string]interface{}) (interface{}, error) {
+func (a *Activity) doSelect(params map[string]interface{}) ([]map[string]interface{}, error) {
 	var err error
 	var rows *sql.Rows
 
