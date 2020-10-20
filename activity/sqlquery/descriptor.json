@@ -56,12 +56,6 @@
 			"required": false
 		},
 		{
-			"name": "timeColumnIndex",
-			"type": "string",
-			"description": "This value indicates the location of the column, which is a time attribute.",
-			"required": false
-		},
-		{
 			"name": "startOffset",
 			"type": "string",
 			"description" : "start offset time",
