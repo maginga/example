@@ -1,4 +1,4 @@
-module example/activity/sqlquery
+module github.com/maginga/example/activity/sqlquery
 
 go 1.15
 

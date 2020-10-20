@@ -1,4 +1,4 @@
-module example/activity/producer
+module github.com/maginga/example/activity/producer
 
 go 1.15
 

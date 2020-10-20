@@ -1,4 +1,4 @@
-module example/activity/csvreader
+module github.com/maginga/example/activity/csvreader
 
 go 1.15
 
