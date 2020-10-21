@@ -12,7 +12,7 @@ import (
 	"github.com/project-flogo/core/support/log"
 )
 
-layout := "2006-01-02 15:04:05.000"
+var layout string = "2006-01-02 15:04:05.000"
 
 func init() {
 	_ = activity.Register(&Activity{}, New)
@@ -133,10 +133,10 @@ func (a *Activity) Eval(ctx activity.Context) (done bool, err error) {
 		lastRow := results[len(results)-1]
 		last := lastRow["event_time"]
 
-		utc, _ := time.Parse(layout, last)
-		loc, _ := time.LoadLocation(s.TimeZone) //"Asia/Seoul"
+		utc, _ := time.Parse(layout, last.(string))
+		loc, _ := time.LoadLocation(a.settings.TimeZone) //"Asia/Seoul"
 		f := utc.In(loc)
-		
+
 		min, _ := strconv.Atoi(a.settings.BatchSize)
 		t := a.fromdate.Add(time.Minute * time.Duration(min))
 
