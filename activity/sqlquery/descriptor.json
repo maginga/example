@@ -56,6 +56,12 @@
 			"required": false
 		},
 		{
+			"name": "timeZone",
+			"type": "string",
+			"description" : "datasource location",
+			"required": true
+		},
+		{
 			"name": "startOffset",
 			"type": "string",
 			"description" : "start offset time",

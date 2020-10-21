@@ -10,6 +10,7 @@ type Settings struct {
 	MaxOpenConns    int    `md:"maxOpenConnections"`
 	MaxIdleConns    int    `md:"maxIdleConnections"`
 	DisablePrepared bool   `md:"disablePrepared"`
+	TimeZone        string `md:"timeZone"`
 	StartOffset     string `md:"startOffset,required"`
 	BatchSize       string `md:"batchSize,required"`
 }

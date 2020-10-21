@@ -12,6 +12,8 @@ import (
 	"github.com/project-flogo/core/support/log"
 )
 
+layout := "2006-01-02 15:04:05.000"
+
 func init() {
 	_ = activity.Register(&Activity{}, New)
 }
@@ -51,11 +53,15 @@ func New(ctx activity.InitContext) (activity.Activity, error) {
 		return nil, fmt.Errorf("only select statement is supported")
 	}
 
-	f, e := time.Parse(time.RFC3339, s.StartOffset) // "2012-11-01T22:08:41+00:00"
-	if e != nil {
-		ctx.Logger().Debug("time parsing error.")
-		return nil, e
-	}
+	utc, _ := time.Parse(layout, s.StartOffset)
+	loc, _ := time.LoadLocation(s.TimeZone) //"Asia/Seoul"
+	f := utc.In(loc)
+
+	// f, e := time.Parse(time.RFC3339, s.StartOffset) // "2012-11-01T22:08:41+00:00"
+	// if e != nil {
+	// 	ctx.Logger().Debug("time parsing error.")
+	// 	return nil, e
+	// }
 	min, _ := strconv.Atoi(s.BatchSize)
 	t := f.Add(time.Minute * time.Duration(min))
 
@@ -108,8 +114,8 @@ func (a *Activity) Eval(ctx activity.Context) (done bool, err error) {
 		return false, err
 	}
 
-	in.Params["fromdate"] = a.fromdate.Format(time.RFC3339)
-	in.Params["todate"] = a.todate.Format(time.RFC3339)
+	in.Params["fromdate"] = a.fromdate.Format(layout)
+	in.Params["todate"] = a.todate.Format(layout)
 
 	results, err := a.doSelect(in.Params)
 	if err != nil {
@@ -126,7 +132,11 @@ func (a *Activity) Eval(ctx activity.Context) (done bool, err error) {
 	if len(results) > 0 {
 		lastRow := results[len(results)-1]
 		last := lastRow["event_time"]
-		f, _ := time.Parse(time.RFC3339, last.(string)) // "2012-11-01T22:08:41+00:00"
+
+		utc, _ := time.Parse(layout, last)
+		loc, _ := time.LoadLocation(s.TimeZone) //"Asia/Seoul"
+		f := utc.In(loc)
+		
 		min, _ := strconv.Atoi(a.settings.BatchSize)
 		t := a.fromdate.Add(time.Minute * time.Duration(min))
 
