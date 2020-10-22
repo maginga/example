@@ -134,11 +134,10 @@ func (a *Activity) Eval(ctx activity.Context) (done bool, err error) {
 		utc := lastRow["event_time"].(time.Time)
 		loc, _ := time.LoadLocation(a.settings.TimeZone) //"Asia/Seoul"
 		f := utc.In(loc)
+		a.fromdate = &f
 
 		min, _ := strconv.Atoi(a.settings.BatchSize)
 		t := a.fromdate.Add(time.Minute * time.Duration(min))
-
-		a.fromdate = &f
 		a.todate = &t
 	}
 
