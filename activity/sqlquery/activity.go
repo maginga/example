@@ -131,7 +131,7 @@ func (a *Activity) Eval(ctx activity.Context) (done bool, err error) {
 	if len(results) > 0 {
 		lastRow := results[len(results)-1]
 		last := lastRow["event_time"]
-		ctx.Logger().Infof("last time: %v", last)
+		ctx.Logger().Infof("last time: %s", last)
 
 		utc, _ := time.Parse(layout, last.(string))
 		loc, _ := time.LoadLocation(a.settings.TimeZone) //"Asia/Seoul"
@@ -183,6 +183,10 @@ func getLabeledResults(dbHelper util.DbHelper, rows *sql.Rows) ([]map[string]int
 		return nil, err
 	}
 
+	for c := range columnTypes {
+		log.RootLogger().Infof("column type: %v", c)
+	}
+
 	var results []map[string]interface{}
 
 	for rows.Next() {
@@ -196,10 +200,10 @@ func getLabeledResults(dbHelper util.DbHelper, rows *sql.Rows) ([]map[string]int
 			return nil, err
 		}
 
-		err = rows.Scan(values...)
-		if err != nil {
-			return nil, err
-		}
+		// err = rows.Scan(values...)
+		// if err != nil {
+		// 	return nil, err
+		// }
 
 		resMap := make(map[string]interface{}, len(columns))
 		for i, column := range columns {
