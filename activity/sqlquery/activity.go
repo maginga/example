@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"time"
 
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/project-flogo/contrib/activity/sqlquery/util"
 	"github.com/project-flogo/core/activity"
 	"github.com/project-flogo/core/data/metadata"
