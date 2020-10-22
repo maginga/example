@@ -32,7 +32,7 @@ func New(ctx activity.InitContext) (activity.Activity, error) {
 
 	conn, err := getKafkaConnection(ctx.Logger(), settings)
 	if err != nil {
-		//ctx.Logger().Errorf("Kafka parameters initialization got error: [%s]", err.Error())
+		ctx.Logger().Errorf("Kafka parameters initialization got error: [%s]", err.Error())
 		return nil, err
 	}
 
@@ -88,7 +88,7 @@ func (act *Activity) Eval(ctx activity.Context) (done bool, err error) {
 		return false, err
 	}
 
-	ctx.Logger().Infof("A message sent on partition [%d] and offset [%d]", input.Message, partition, offset)
+	ctx.Logger().Infof("A message sent on partition [%d] and offset [%d]", partition, offset)
 
 	return true, nil
 }
