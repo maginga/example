@@ -183,9 +183,8 @@ func getLabeledResults(dbHelper util.DbHelper, rows *sql.Rows) ([]map[string]int
 		return nil, err
 	}
 
-	for c := range columnTypes {
-		log.RootLogger().Infof("column type: %v", c)
-	}
+	log.RootLogger().Infof("column name: %v", columns)
+	log.RootLogger().Infof("column type: %v", columnTypes)
 
 	var results []map[string]interface{}
 
