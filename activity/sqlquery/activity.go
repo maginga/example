@@ -116,20 +116,21 @@ func (a *Activity) Eval(ctx activity.Context) (done bool, err error) {
 	in.Params["fromdate"] = a.fromdate.Format(layout)
 	in.Params["todate"] = a.todate.Format(layout)
 
-	results, err := a.doSelect(in.Params)
+	ctx.Logger().Infof("query from: %s, to: %s", in.Params["fromdate"], in.Params["todate"])
+
+	r, err := a.doSelect(in.Params)
 	if err != nil {
 		return false, err
 	}
 
-	output := &Output{Results: results}
+	output := &Output{Result: r}
 	err = ctx.SetOutputObject(output)
 	if err != nil {
 		return false, err
 	}
-	ctx.Logger().Infof("result: %v", len(results))
 
-	if len(results) > 0 {
-		lastRow := results[len(results)-1]
+	if len(r) > 0 {
+		lastRow := r[len(r)-1].(map[string]interface{})
 		utc := lastRow["event_time"].(time.Time)
 		loc, _ := time.LoadLocation(a.settings.TimeZone) //"Asia/Seoul"
 		f := utc.In(loc)
@@ -141,10 +142,11 @@ func (a *Activity) Eval(ctx activity.Context) (done bool, err error) {
 		a.todate = &t
 	}
 
+	ctx.Logger().Infof("Result: %v rows.", len(r))
 	return true, nil
 }
 
-func (a *Activity) doSelect(params map[string]interface{}) ([]map[string]interface{}, error) {
+func (a *Activity) doSelect(params map[string]interface{}) ([]interface{}, error) {
 	var err error
 	var rows *sql.Rows
 
@@ -169,7 +171,7 @@ func (a *Activity) doSelect(params map[string]interface{}) ([]map[string]interfa
 	return results, nil
 }
 
-func getLabeledResults(dbHelper util.DbHelper, rows *sql.Rows) ([]map[string]interface{}, error) {
+func getLabeledResults(dbHelper util.DbHelper, rows *sql.Rows) ([]interface{}, error) {
 	columns, err := rows.Columns()
 	if err != nil {
 		return nil, err
@@ -180,9 +182,9 @@ func getLabeledResults(dbHelper util.DbHelper, rows *sql.Rows) ([]map[string]int
 		return nil, err
 	}
 
-	log.RootLogger().Infof("column name: %v", columns)
+	log.RootLogger().Infof("column names: %v", columns)
 
-	var results []map[string]interface{}
+	var results []interface{}
 
 	for rows.Next() {
 		values := make([]interface{}, len(columnTypes))

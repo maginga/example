@@ -84,7 +84,7 @@
 	],
 	"output": [
 		{
-			"name": "results",
+			"name": "result",
 			"type": "object",
 			"description" : "Result of SQL Query.",
 			"required": false

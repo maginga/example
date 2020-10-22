@@ -19,11 +19,6 @@ type Input struct {
 	Params map[string]interface{} `md:"params"`
 }
 
-type Output struct {
-	// ColumnNames []interface{} `md:"columnNames"`
-	Results interface{} `md:"results"`
-}
-
 // FromMap converts the values from a map into the struct Input
 func (i *Input) FromMap(values map[string]interface{}) error {
 	params, err := coerce.ToObject(values["params"])
@@ -41,15 +36,20 @@ func (i *Input) ToMap() map[string]interface{} {
 	}
 }
 
+type Output struct {
+	// ColumnNames []interface{} `md:"columnNames"`
+	Result interface{} `md:"result"`
+}
+
 func (o *Output) ToMap() map[string]interface{} {
 	return map[string]interface{}{
-		"results": o.Results,
+		"result": o.Result,
 	}
 }
 
 func (o *Output) FromMap(values map[string]interface{}) error {
 	var err error
-	o.Results, err = coerce.ToObject(values["results"])
+	o.Result, err = coerce.ToObject(values["result"])
 	if err != nil {
 		return err
 	}
