@@ -37,7 +37,7 @@ func New(ctx activity.InitContext) (activity.Activity, error) {
 		return nil, err
 	}
 
-	ctx.Logger().Debugf("DB: '%s'", s.DbType)
+	ctx.Logger().Infof("DB: '%s'", s.DbType)
 
 	// todo move this to a shared connection object
 	db, err := getConnection(s)
@@ -58,18 +58,16 @@ func New(ctx activity.InitContext) (activity.Activity, error) {
 	loc, _ := time.LoadLocation(s.TimeZone) //"Asia/Seoul"
 	f := utc.In(loc)
 
-	// f, e := time.Parse(time.RFC3339, s.StartOffset) // "2012-11-01T22:08:41+00:00"
-	// if e != nil {
-	// 	ctx.Logger().Debug("time parsing error.")
-	// 	return nil, e
-	// }
 	min, _ := strconv.Atoi(s.BatchSize)
 	t := f.Add(time.Minute * time.Duration(min))
+
+	ctx.Logger().Infof("start: %v", f)
+	ctx.Logger().Infof("end: %v", t)
 
 	act := &Activity{db: db, dbHelper: dbHelper, sqlStatement: sqlStatement, settings: s, fromdate: &f, todate: &t}
 
 	if !s.DisablePrepared {
-		ctx.Logger().Debugf("Using PreparedStatement: %s", sqlStatement.PreparedStatementSQL())
+		ctx.Logger().Infof("Using PreparedStatement: %s", sqlStatement.PreparedStatementSQL())
 		act.stmt, err = db.Prepare(sqlStatement.PreparedStatementSQL())
 		if err != nil {
 			return nil, err
@@ -128,11 +126,12 @@ func (a *Activity) Eval(ctx activity.Context) (done bool, err error) {
 	if err != nil {
 		return false, err
 	}
-	ctx.Logger().Debugf("result: %v", len(results))
+	ctx.Logger().Infof("result: %v", len(results))
 
 	if len(results) > 0 {
 		lastRow := results[len(results)-1]
 		last := lastRow["event_time"]
+		ctx.Logger().Infof("last time: %v", last)
 
 		utc, _ := time.Parse(layout, last.(string))
 		loc, _ := time.LoadLocation(a.settings.TimeZone) //"Asia/Seoul"
