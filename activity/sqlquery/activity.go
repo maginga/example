@@ -182,8 +182,6 @@ func getLabeledResults(dbHelper util.DbHelper, rows *sql.Rows) ([]interface{}, e
 		return nil, err
 	}
 
-	log.RootLogger().Infof("column names: %v", columns)
-
 	var results []interface{}
 
 	for rows.Next() {

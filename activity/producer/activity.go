@@ -61,7 +61,7 @@ func (act *Activity) Eval(ctx activity.Context) (done bool, err error) {
 	pts, _ := time.ParseDuration(act.settings.PeriodOfTime)
 	time.Sleep(pts)
 
-	ctx.Logger().Debugf("sending Kafka message")
+	ctx.Logger().Infof("sending message: %v", input.Message)
 	message := makeMessage(input.Message.(map[string]interface{}))
 
 	msg := &sarama.ProducerMessage{
@@ -78,15 +78,17 @@ func (act *Activity) Eval(ctx activity.Context) (done bool, err error) {
 	output.Partition = partition
 	output.OffSet = offset
 
-	if ctx.Logger().DebugEnabled() {
-		ctx.Logger().Debugf("Kafka message [%v] sent successfully on partition [%d] and offset [%d]",
-			input.Message, partition, offset)
-	}
+	// if ctx.Logger().DebugEnabled() {
+	// 	ctx.Logger().Debugf("Kafka message [%v] sent successfully on partition [%d] and offset [%d]",
+	// 		input.Message, partition, offset)
+	// }
 
 	err = ctx.SetOutputObject(output)
 	if err != nil {
 		return false, err
 	}
+
+	ctx.Logger().Infof("A message sent on partition [%d] and offset [%d]", input.Message, partition, offset)
 
 	return true, nil
 }
