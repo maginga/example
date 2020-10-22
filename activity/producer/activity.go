@@ -62,7 +62,7 @@ func (act *Activity) Eval(ctx activity.Context) (done bool, err error) {
 	time.Sleep(pts)
 
 	ctx.Logger().Infof("sending message: %v", input.Message)
-	message := makeMessage(input.Message.(map[string]interface{}))
+	message := makeMessage(input.Message.(string))
 
 	msg := &sarama.ProducerMessage{
 		Topic: act.settings.Topic,
@@ -93,13 +93,17 @@ func (act *Activity) Eval(ctx activity.Context) (done bool, err error) {
 	return true, nil
 }
 
-func makeMessage(record map[string]interface{}) string {
-	if record["event_time"] == nil {
+func makeMessage(record string) string {
+	b := []byte(record)
+	var m map[string]interface{}
+	json.Unmarshal(b, &m)
+
+	if m["event_time"] == nil {
 		eventTime := time.Now().UTC().Format(time.RFC3339) // 2019-01-12T01:02:03Z
-		record["event_time"] = eventTime
+		m["event_time"] = eventTime
 	}
 
-	b, _ := json.Marshal(record)
-	s := string(b)
+	j, _ := json.Marshal(m)
+	s := string(j)
 	return s
 }
