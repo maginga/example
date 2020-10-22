@@ -189,6 +189,7 @@ func getLabeledResults(dbHelper util.DbHelper, rows *sql.Rows) ([]interface{}, e
 		values := make([]interface{}, len(columnTypes))
 		for i := range values {
 			values[i] = dbHelper.GetScanType(columnTypes[i])
+			log.RootLogger().Infof("col type: %v", *columnTypes[i])
 		}
 
 		err = rows.Scan(values...)
@@ -198,8 +199,8 @@ func getLabeledResults(dbHelper util.DbHelper, rows *sql.Rows) ([]interface{}, e
 
 		resMap := make(map[string]interface{}, len(columns))
 		for i, column := range columns {
-			//resMap[column] = *(values[i].(*interface{}))
-			resMap[column] = values[i]
+			resMap[column] = *(values[i].(*interface{}))
+			//resMap[column] = values[i]
 		}
 
 		//todo do we need to do column mapping
