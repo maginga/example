@@ -199,8 +199,16 @@ func getLabeledResults(dbHelper util.DbHelper, rows *sql.Rows) ([]interface{}, e
 
 		resMap := make(map[string]interface{}, len(columns))
 		for i, column := range columns {
-			resMap[column] = *(values[i].(*interface{}))
-			//resMap[column] = values[i]
+			// resMap[column] = *(values[i].(*interface{}))
+			// resMap[column] = *(values[i].(*string))
+			switch v := values[i].(type) {
+			case *interface{}:
+				resMap[column] = *(v)
+			case *string:
+				resMap[column] = *(v)
+			default:
+				log.RootLogger().Infof("type unknown")
+			}
 		}
 
 		//todo do we need to do column mapping
