@@ -202,9 +202,10 @@ func getLabeledResults(dbHelper util.DbHelper, rows *sql.Rows) ([]interface{}, e
 			switch v := values[i].(type) {
 			case interface{}:
 				resMap[column] = *(values[i].(*interface{}))
-				fmt.Printf("Integer: %v", v)
+				fmt.Printf("%v", v)
 			case string:
 				resMap[column] = *(values[i].(*string))
+				fmt.Printf("%v", v)
 			default:
 				fmt.Printf("I don't know, ask stackoverflow.")
 			}
