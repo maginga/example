@@ -198,17 +198,8 @@ func getLabeledResults(dbHelper util.DbHelper, rows *sql.Rows) ([]interface{}, e
 
 		resMap := make(map[string]interface{}, len(columns))
 		for i, column := range columns {
-			// resMap[column] = *(values[i].(*interface{}))
-			switch v := values[i].(type) {
-			case interface{}:
-				resMap[column] = *(values[i].(*interface{}))
-				fmt.Printf("%v", v)
-			case string:
-				resMap[column] = *(values[i].(*string))
-				fmt.Printf("%v", v)
-			default:
-				fmt.Printf("I don't know, ask stackoverflow.")
-			}
+			//resMap[column] = *(values[i].(*interface{}))
+			resMap[column] = values[i]
 		}
 
 		//todo do we need to do column mapping
