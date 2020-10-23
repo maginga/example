@@ -1,8 +1,8 @@
 {
-  "name": "flogo-filewatcher",
+  "name": "apm-filewatcher",
   "type": "flogo:trigger",
   "version": "0.0.1",
-  "title": "File Watcher Trigger",
+  "title": "[APM] File Watcher Trigger",
   "author": "example",
   "description": "I have an usecase for reading a File on the arrival of the File in a directory.",
   "settings":[
