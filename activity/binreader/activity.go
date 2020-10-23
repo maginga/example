@@ -5,7 +5,6 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"strings"
 
@@ -43,8 +42,7 @@ func (a *Activity) Metadata() *activity.Metadata {
 
 // Eval evaluate
 func (a *Activity) Eval(context activity.Context) (done bool, err error) {
-	logger := context.Logger()
-	logger.Info("Executing binreader activity")
+	context.Logger().Info("Executing binreader activity")
 
 	input := &Input{}
 	err = context.GetInputObject(input)
@@ -61,7 +59,7 @@ func (a *Activity) Eval(context activity.Context) (done bool, err error) {
 	columns := make(map[string]interface{})
 	for key, value := range a.settings.Columns {
 		columns[key] = value
-		logger.Info(key + ":" + fmt.Sprintf("%v", value))
+		context.Logger().Info(key + ":" + fmt.Sprintf("%v", value))
 	}
 
 	rows := []string{}
@@ -75,7 +73,7 @@ func (a *Activity) Eval(context activity.Context) (done bool, err error) {
 		tsBuffer := bytes.NewBuffer(tsBytes)
 		err = binary.Read(tsBuffer, binary.LittleEndian, &totalSize)
 		if err != nil {
-			log.Fatal("binary.Read failed", err)
+			context.Logger().Warnf("err: %v", err)
 		}
 
 		var dataCount uint32
@@ -83,7 +81,7 @@ func (a *Activity) Eval(context activity.Context) (done bool, err error) {
 		dcBuffer := bytes.NewBuffer(dcBytes)
 		err = binary.Read(dcBuffer, binary.LittleEndian, &dataCount)
 		if err != nil {
-			log.Fatal("binary.Read failed", err)
+			context.Logger().Warnf("err: %v", err)
 		}
 
 		var dateTime [23]byte
@@ -91,7 +89,7 @@ func (a *Activity) Eval(context activity.Context) (done bool, err error) {
 		dtBuffer := bytes.NewBuffer(dtBytes)
 		err = binary.Read(dtBuffer, binary.LittleEndian, &dateTime)
 		if err != nil {
-			log.Fatal("binary.Read failed", err)
+			context.Logger().Warnf("err: %v", err)
 		}
 		strDateTime := string(dateTime[:23]) //BytesToString(datetime)
 
@@ -100,7 +98,7 @@ func (a *Activity) Eval(context activity.Context) (done bool, err error) {
 		nullBuffer := bytes.NewBuffer(nullBytes)
 		err = binary.Read(nullBuffer, binary.LittleEndian, &null)
 		if err != nil {
-			log.Fatal("binary.Read failed", err)
+			context.Logger().Warnf("err: %v", err)
 		}
 
 		values := []string{}
@@ -111,9 +109,8 @@ func (a *Activity) Eval(context activity.Context) (done bool, err error) {
 			dpBuffer := bytes.NewBuffer(dpBytes)
 			err = binary.Read(dpBuffer, binary.LittleEndian, &dataPoint)
 			if err != nil {
-				log.Fatal("binary.Read failed", err)
+				context.Logger().Warnf("err: %v", err)
 			}
-			// values = append(values, fmt.Sprintf("%v", columns[strconv.Itoa(i)])+"="+fmt.Sprintf("%f", dataPoint))
 			values = append(values, fmt.Sprintf("%f", dataPoint))
 		}
 		json := "{event_time=" + strDateTime + "," + strings.Join(values, ",") + "}"
@@ -124,18 +121,18 @@ func (a *Activity) Eval(context activity.Context) (done bool, err error) {
 		crlfBuffer := bytes.NewBuffer(crlfBytes)
 		err = binary.Read(crlfBuffer, binary.LittleEndian, &crlf)
 		if err != nil {
-			log.Fatal("binary.Read failed", err)
+			context.Logger().Warnf("err: %v", err)
 		}
 	}
 
-	logger.Info("rows: ", len(rows))
+	context.Logger().Infof("rows: %v", len(rows))
 	output := &Output{Message: rows}
 	err = context.SetOutputObject(output)
 	if err != nil {
 		return false, err
 	}
 
-	logger.Info("binreader activity completed")
+	context.Logger().Info("binreader activity completed")
 	return true, nil
 }
 

@@ -41,19 +41,18 @@ func (a *Activity) Metadata() *activity.Metadata {
 }
 
 // Eval evaluate
-func (a *Activity) Eval(context activity.Context) (done bool, err error) {
-	logger := context.Logger()
-	logger.Info("Executing csvreader activity")
+func (a *Activity) Eval(ctx activity.Context) (done bool, err error) {
+	ctx.Logger().Info("Executing csvreader activity")
 
 	input := &Input{}
-	err = context.GetInputObject(input)
+	err = ctx.GetInputObject(input)
 	if err != nil {
 		return false, err
 	}
 	fileName := input.FileName
 	csvfile, err := os.Open(fileName)
 	if err != nil {
-
+		ctx.Logger().Errorf("err: %v", err)
 	}
 	defer csvfile.Close()
 
@@ -82,7 +81,7 @@ func (a *Activity) Eval(context activity.Context) (done bool, err error) {
 			break
 		}
 		if err != nil {
-
+			ctx.Logger().Errorf("err: %v", err)
 		}
 
 		if len(header) == 0 {
@@ -92,44 +91,35 @@ func (a *Activity) Eval(context activity.Context) (done bool, err error) {
 			valueMap := make(map[string]interface{})
 
 			if timeColIndex < 0 {
-				// timeStr := time.Now().UTC().Format(time.RFC3339) // 2019-01-12T01:02:03Z
 				valueMap["event_time"] = nil
-				// values = append(values, "event_time:\""+timeStr+"\"")
 			} else {
 				t, _ := ParseLocal(record[timeColIndex])
 				valueMap["event_time"] = t.Format(time.RFC3339)
-				// values = append(values, "event_time:\""+t.Format(time.RFC3339)+"\"")
 			}
 
 			valueMap["assetId"] = a.settings.PhysicalAssetName
 			valueMap["sensorType"] = a.settings.SensorType
 			valueMap["sensorName"] = a.settings.SensorName
 
-			// values = append(values, "assetId:\""+a.settings.PhysicalAssetName+"\"")
-			// values = append(values, "sensorType:\""+a.settings.SensorType+"\"")
-			// values = append(values, "sensorName:\""+a.settings.SensorName+"\"")
-
 			for i := range header {
 				if excludeColumns != nil && contains(excludeColumns, i) {
 					continue
 				} else {
 					valueMap[header[i]] = record[i]
-					// values = append(values, header[i]+":"+"\""+record[i]+"\"")
 				}
 			}
-			// json = "{" + strings.Join(values, ",") + "}"
 			rows = append(rows, valueMap)
 		}
 	}
 
-	logger.Info("rows: ", len(rows))
+	ctx.Logger().Info("rows: ", len(rows))
 	output := &Output{Message: rows}
-	err = context.SetOutputObject(output)
+	err = ctx.SetOutputObject(output)
 	if err != nil {
 		return false, err
 	}
 
-	logger.Info("csvreader activity completed")
+	ctx.Logger().Info("csvreader activity completed")
 	return true, nil
 }
 
