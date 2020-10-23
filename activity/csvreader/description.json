@@ -2,10 +2,9 @@
     "name": "flogo-csvreader",
     "type": "flogo:activity",
     "ref": "github.com/maginga/example/activity/csvreader",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "title": "CSV Reader Activity",
     "description": "Reading given CSV",
-    "homepage": "",
     "settings":[
       {
         "name": "timeColumnIndex",

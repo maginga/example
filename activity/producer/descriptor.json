@@ -1,11 +1,10 @@
 {
   "name": "flogo-producer",
-  "version": "0.0.1",
-  "title": "Publish Custom Kafka message",
   "type": "flogo:activity",
+  "version": "0.0.1",
   "ref": "github.com/maginga/example/activity/producer",
+  "title": "Publish Custom Kafka message",
   "description": "Publish a custom message to a kafka topic",
-  "homepage": "",
   "settings":[
     {
       "name": "brokerUrls",
