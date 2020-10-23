@@ -1,4 +1,4 @@
-module example/activity/binreader
+module github.com/maginga/example/activity/binreader
 
 go 1.15
 
