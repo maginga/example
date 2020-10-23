@@ -1,9 +1,8 @@
 {
-    "name": "flogo-csvreader",
+    "name": "apm-csvreader",
     "type": "flogo:activity",
-    "ref": "github.com/maginga/example/activity/csvreader",
     "version": "0.0.2",
-    "title": "CSV Reader Activity",
+    "title": "[APM] CSV Reader Activity",
     "description": "Reading given CSV",
     "settings":[
       {

@@ -1,9 +1,8 @@
 {
-  "name": "flogo-producer",
+  "name": "apm-producer",
   "type": "flogo:activity",
   "version": "0.0.1",
-  "ref": "github.com/maginga/example/activity/producer",
-  "title": "Publish Custom Kafka message",
+  "title": "[APM] Publish Kafka message",
   "description": "Publish a custom message to a kafka topic",
   "settings":[
     {

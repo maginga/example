@@ -1,9 +1,8 @@
 {
-    "name": "flogo-binreader",
+    "name": "apm-binreader",
     "type": "flogo:activity",
-    "ref": "github.com/maginga/example/activity/binreader",
     "version": "0.0.2",
-    "title": "Binary Reader Activity",
+    "title": "[APM] Binary Reader Activity",
     "description": "Reading from binary file",
     "settings":[
       {
