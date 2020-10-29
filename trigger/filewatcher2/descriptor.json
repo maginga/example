@@ -1,0 +1,52 @@
+{
+  "name": "apm-filewatcher2",
+  "type": "flogo:trigger",
+  "version": "0.0.1",
+  "title": "[APM] Asset File Watcher Trigger",
+  "author": "example",
+  "description": "I have an usecase for reading a File on the arrival of the File in a directory.",
+  "settings":[
+  ],
+  "outputs": [
+    {
+      "name": "fileName",
+      "type": "string"
+    },
+    {
+      "name": "assetName",
+      "type": "string"
+    },
+    {
+      "name": "sensorName",
+      "type": "string"
+    },
+    {
+      "name": "sensorType",
+      "type": "string"
+    }
+  ],
+  "handler": {
+    "settings": [
+      {
+        "name": "dirName",
+        "type": "string",
+        "required" : true
+      },
+      {
+        "name": "assetName",
+        "type": "string",
+        "required" : true
+      },
+      {
+        "name": "sensorName",
+        "type": "string",
+        "required" : true
+      },
+      {
+        "name": "sensorType",
+        "type": "string",
+        "required" : true
+      }
+    ]
+  }
+}
