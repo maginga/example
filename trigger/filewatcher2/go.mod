@@ -1,4 +1,4 @@
-module example/trigger/filewatcher2
+module github.com/maginga/example/trigger/filewatcher2
 
 go 1.15
 
