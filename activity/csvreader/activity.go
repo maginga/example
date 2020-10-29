@@ -97,9 +97,9 @@ func (a *Activity) Eval(ctx activity.Context) (done bool, err error) {
 				valueMap["event_time"] = t.Format(time.RFC3339)
 			}
 
-			valueMap["assetId"] = a.settings.PhysicalAssetName
-			valueMap["sensorType"] = a.settings.SensorType
-			valueMap["sensorName"] = a.settings.SensorName
+			valueMap["assetId"] = input.AssetName
+			valueMap["sensorType"] = input.SensorType
+			valueMap["sensorName"] = input.SensorName
 
 			for i := range header {
 				if excludeColumns != nil && contains(excludeColumns, i) {

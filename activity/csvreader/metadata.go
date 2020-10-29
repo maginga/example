@@ -4,21 +4,24 @@ import "github.com/project-flogo/core/data/coerce"
 
 // Settings setting struct
 type Settings struct {
-	TimeColumnIndex   string `md:"timeColumnIndex"` // The time column in CSV file.
-	ExcludeColumns    string `md:"excludeColumns"`  // Columns to be exclude.
-	PhysicalAssetName string `md:"physicalAssetName"`
-	SensorName        string `md:"sensorName"`
-	SensorType        string `md:"sensorType"`
+	TimeColumnIndex string `md:"timeColumnIndex"` // The time column in CSV file.
+	ExcludeColumns  string `md:"excludeColumns"`  // Columns to be exclude.
 }
 
 // Input input
 type Input struct {
-	FileName string `md:"fileName"` //
+	FileName   string `md:"fileName"` //
+	AssetName  string `md:"assetName"`
+	SensorName string `md:"sensorName"`
+	SensorType string `md:"sensorType"`
 }
 
 func (i *Input) ToMap() map[string]interface{} {
 	return map[string]interface{}{
-		"fileName": i.FileName,
+		"fileName":   i.FileName,
+		"assetName":  i.AssetName,
+		"sensorName": i.SensorName,
+		"sensorType": i.SensorType,
 	}
 }
 
@@ -26,6 +29,10 @@ func (i *Input) FromMap(values map[string]interface{}) error {
 
 	var err error
 	i.FileName, err = coerce.ToString(values["fileName"])
+	i.AssetName, err = coerce.ToString(values["assetName"])
+	i.SensorName, err = coerce.ToString(values["sensorName"])
+	i.SensorType, err = coerce.ToString(values["sensorType"])
+
 	if err != nil {
 		return err
 	}

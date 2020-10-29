@@ -14,26 +14,26 @@
       "name": "excludeColumns",
       "type": "string",
       "description": "This value specifies the columns to be excluded and can be specified in multiple numbers using a comma."
-    },
-    {
-      "name": "physicalAssetName",
-      "type": "string",
-      "description": "Physical Asset Name."
-    },
-    {
-      "name": "sensorName",
-      "type": "string",
-      "description": "Sensor Name."
-    },
-    {
-      "name": "sensorType",
-      "type": "string",
-      "description": "Sensor Type."
     }
   ],
   "input": [
     {
       "name": "fileName",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "assetName",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "sensorName",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "sensorType",
       "type": "string",
       "required": true
     }
