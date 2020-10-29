@@ -1,0 +1,85 @@
+{
+  "name": "apm-csvsender",
+  "type": "flogo:activity",
+  "version": "0.0.2",
+  "title": "[APM] CSV Reader&Sender Activity",
+  "description": "Reading and Sending given CSV",
+  "settings":[
+    {
+      "name": "timeColumnIndex",
+      "type": "string",
+      "description": "This value indicates the location of the column, which is a time attribute."
+    },
+    {
+      "name": "excludeColumns",
+      "type": "string",
+      "description": "This value specifies the columns to be excluded and can be specified in multiple numbers using a comma."
+    },
+    {
+      "name": "brokerUrls",
+      "type": "string",
+      "required": true,
+      "description": "The Kafka cluster to connect to"
+    },
+    {
+      "name": "topic",
+      "type": "string",
+      "required": true,
+      "description": "The Kafka topic on which to place the message"
+    },
+    {
+      "name": "user",
+      "type": "string",
+      "description": "If connecting to a SASL enabled port, the user id to use for authentication"
+    },
+    {
+      "name": "password",
+      "type": "string",
+      "description": "If connecting to a SASL enabled port, the password to use for authentication"
+    },
+    {
+      "name": "trustStore",
+      "type": "string",
+      "description": "If connecting to a TLS secured port, the directory containing the certificates representing the trust chain for the connection. This is usually just the CACert used to sign the server's certificate"
+    },
+    {
+      "name": "periodOfTime",
+      "type": "string",
+      "description": "This value indicates how often the message is sent to the kafka."
+    }
+  ],
+  "input": [
+    {
+      "name": "fileName",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "assetName",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "sensorName",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "sensorType",
+      "type": "string",
+      "required": true
+    }
+  ],
+  "output": [
+    {
+      "name": "partition",
+      "type": "int",
+      "description": "Documents the partition that the message was placed on"
+    },
+    {
+      "name": "offset",
+      "type": "long",
+      "description": "Documents the offset for the message"
+    }
+  ]
+}
