@@ -183,7 +183,7 @@ For example: apm tenant build
 				parameterName, upper, target, lower, _ := interactive.PromptParameter(paramGroupID)
 				parameterID, _ := domain.CreateParameter(paramGroupID, parameterName)
 				log.Println("Parameter ID: " + parameterID)
-				domain.CreateParameterWithSpec("", parameterID, upper, target, lower)
+				domain.CreateParamSpecWithModel("", parameterID, upper, target, lower)
 
 				log.Println(" ")
 				r, _ := interactive.PromptAddMoreParameter()
@@ -230,6 +230,8 @@ For example: apm tenant build
 
 			phyAsset, assetID, _ := domain.CreateAsset(tenantID, templateID, catalogID, nestID, assetName)
 			log.Println("Physical Asset Name: " + phyAsset)
+
+			domain.CreateParamSpecWithAsset(assetID, paramGroupID)
 
 			deviceID, _, _ := interactive.SelectDevice(tenantID)
 			log.Println("device is selected: " + deviceID)

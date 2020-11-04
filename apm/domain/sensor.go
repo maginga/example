@@ -24,11 +24,11 @@ func CreateSensor(assetID, deviceID, paramGroupID, duration, sensorName string) 
 	defer tx.Rollback()
 
 	stmt1 := "INSERT INTO sensor " +
-		"(id, version, asset_id, collecting, device_id, duration, name, physical_name, url, created_by, created_time) VALUES " +
-		"(?,?,?,?,?,?,?,?,?,?,NOW()) "
+		"(id, version, asset_id, collecting, device_id, duration, name, physical_name, url, created_by, created_time, modified_by, modified_time) VALUES " +
+		"(?,?,?,?,?,?,?,?,?,'admin',NOW(),'admin',NOW()) "
 
 	uid := uuid.New().String()
-	_, err = tx.Exec(stmt1, uid, 0, assetID, 1, deviceID, duration, sensorName, sensorName, "modbus://10.0.0.2:502", "admin")
+	_, err = tx.Exec(stmt1, uid, 0, assetID, 1, deviceID, duration, sensorName, sensorName, "modbus://10.0.0.2:502")
 
 	if err != nil {
 		log.Panic(err)

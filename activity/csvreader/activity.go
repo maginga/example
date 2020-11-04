@@ -99,7 +99,7 @@ func (a *Activity) Eval(ctx activity.Context) (done bool, err error) {
 
 			valueMap["assetId"] = input.AssetName
 			valueMap["sensorType"] = input.SensorType
-			valueMap["sensorName"] = input.SensorName
+			valueMap["sensorId"] = input.SensorName
 
 			for i := range header {
 				if excludeColumns != nil && contains(excludeColumns, i) {

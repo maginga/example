@@ -59,11 +59,11 @@ func CreateParamGroup(tenantID string, typeID string, groupName string) (string,
 	defer tx.Rollback()
 
 	stmt1 := "INSERT INTO param_group " +
-		"(id, version, tenant_id, name, type_id, created_by, created_time) VALUES " +
-		"(?,?,?,?,?,?,NOW()) "
+		"(id, version, tenant_id, name, type_id, created_by, created_time, modified_by, modified_time) VALUES " +
+		"(?,?,?,?,?,'admin',NOW(),'admin',NOW()) "
 
 	uid := uuid.New().String()
-	_, err = tx.Exec(stmt1, uid, 0, tenantID, groupName, typeID, "admin")
+	_, err = tx.Exec(stmt1, uid, 0, tenantID, groupName, typeID)
 
 	if err != nil {
 		log.Panic(err)

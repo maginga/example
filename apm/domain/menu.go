@@ -284,10 +284,10 @@ func CreateMenu(tenantID string) error {
 
 	uid := uuid.New().String()
 	stmt := "INSERT INTO menu " +
-		"(id, version, contents, tenant_id, created_by, created_time) VALUES " +
-		"(?,?,?,?,?,NOW()) "
+		"(id, version, contents, tenant_id, created_by, created_time, modified_by, modified_time) VALUES " +
+		"(?,?,?,?,'admin',NOW(),'admin',NOW()) "
 
-	_, err = tx.Exec(stmt, uid, 0, contents, tenantID, "admin")
+	_, err = tx.Exec(stmt, uid, 0, contents, tenantID)
 
 	if err != nil {
 		log.Panic(err)

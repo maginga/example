@@ -91,40 +91,40 @@ For example: apm create stream [refiner, alarm, paramalarm, fdc, spc, mva, bae, 
 					"--program-identifier", "parameter"}
 				opts.Parallelism = 1
 			} else if args[0] == "fdc" {
-				opts.EntryClass = ""
+				opts.EntryClass = "com.bistel.apm.model.uv.oos.FDModel"
 				opts.ProgramArg = []string{"--job-name", nestID + "-fdc",
 					"--specification-url", specURL,
 					"--program-identifier", "fdc",
-					"--local-repository-location", "/var/tmp/flink/fd"}
+					"--local-repository-location", "/var/tmp/flink/" + nestID + "/fd"}
 				opts.Parallelism = 1
 			} else if args[0] == "spc" {
-				opts.EntryClass = ""
+				opts.EntryClass = "com.bistel.apm.model.uv.spc.SPCRulesModel"
 				opts.ProgramArg = []string{"--job-name", nestID + "-spc",
 					"--specification-url", specURL,
 					"--program-identifier", "spc",
 					"--reference-period", "120000",
-					"--local-repository-location", "/var/tmp/flink/spc"}
+					"--local-repository-location", "/var/tmp/flink/" + nestID + "/spc"}
 				opts.Parallelism = 1
 			} else if args[0] == "mva" {
-				opts.EntryClass = ""
+				opts.EntryClass = "com.bistel.apm.model.mv.statistical.MVAModel"
 				opts.ProgramArg = []string{"--job-name", nestID + "-mva",
 					"--specification-url", specURL,
 					"--program-identifier", "mva",
-					"--local-repository-location", "/var/tmp/flink/mva"}
+					"--local-repository-location", "/var/tmp/flink/" + nestID + "/mva"}
 				opts.Parallelism = 1
 			} else if args[0] == "bae" {
-				opts.EntryClass = ""
+				opts.EntryClass = "com.bistel.apm.model.mv.unsupervised.AutoEncoderModel"
 				opts.ProgramArg = []string{"--job-name", nestID + "-bae",
 					"--specification-url", specURL,
 					"--program-identifier", "unsupervised",
-					"--local-repository-location", "/var/tmp/flink/bae"}
+					"--local-repository-location", "/var/tmp/flink/" + nestID + "/bae"}
 				opts.Parallelism = 1
 			} else if args[0] == "current" {
-				opts.EntryClass = ""
+				opts.EntryClass = "com.bistel.apm.model.domain.CurrentImbalanceModel"
 				opts.ProgramArg = []string{"--job-name", nestID + "-current",
 					"--specification-url", specURL,
 					"--program-identifier", "current",
-					"--local-repository-location", "/var/tmp/flink/current"}
+					"--local-repository-location", "/var/tmp/flink/" + nestID + "/current"}
 				opts.Parallelism = 1
 			} else {
 				log.Println("Warning: There are no valid arguments.")
