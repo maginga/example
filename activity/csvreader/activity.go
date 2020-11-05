@@ -105,7 +105,12 @@ func (a *Activity) Eval(ctx activity.Context) (done bool, err error) {
 				if excludeColumns != nil && contains(excludeColumns, i) {
 					continue
 				} else {
-					valueMap[header[i]] = record[i]
+					if timeColIndex < 0 || timeColIndex != i {
+						f1, e := strconv.ParseFloat(record[i], 8)
+						if e == nil {
+							valueMap[header[i]] = f1
+						}
+					}
 				}
 			}
 			rows = append(rows, valueMap)
