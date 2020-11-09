@@ -409,6 +409,12 @@ func (c *DruidClient) CreateScore(nestID string) (string, error) {
 			"type": "STRING",
 			"role": "DIMENSION",
 			"seq": 7
+		  },
+		  {
+			"name": "assetState",
+			"type": "STRING",
+			"role": "DIMENSION",
+			"seq": 8
 		  }
 		]
 	  }`
