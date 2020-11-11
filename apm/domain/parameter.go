@@ -43,7 +43,7 @@ func CreateParameter(paramGroupID string, paramName string) (string, error) {
 	return uid, err
 }
 
-func CreateParamSpecWithModel(assetID, paramID, upper, target, lower string) (string, error) {
+func CreateParamSpecWithModel(paramID, upper, target, lower string) (string, error) {
 	url := fmt.Sprintf("%v", viper.Get("metadata.grandview-url"))
 	db, err := sql.Open("mysql", url)
 	if err != nil {
@@ -62,7 +62,7 @@ func CreateParamSpecWithModel(assetID, paramID, upper, target, lower string) (st
 		"(?,?,?,?) "
 
 	uid := uuid.New().String()
-	_, err = tx.Exec(stmt1, uid, assetID, paramID,
+	_, err = tx.Exec(stmt1, uid, nil, paramID,
 		`{
 			"type": "default",
 			"lowerLimit": `+lower+`,

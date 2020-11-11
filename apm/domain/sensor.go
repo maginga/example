@@ -27,8 +27,8 @@ func CreateSensor(assetID, deviceID, paramGroupID, duration, sensorName string) 
 		"(id, version, asset_id, collecting, device_id, duration, name, physical_name, url, created_by, created_time, modified_by, modified_time) VALUES " +
 		"(?,?,?,?,?,?,?,?,?,'admin',NOW(),'admin',NOW()) "
 
-	uid := uuid.New().String()
-	_, err = tx.Exec(stmt1, uid, 0, assetID, 1, deviceID, duration, sensorName, sensorName, "modbus://10.0.0.2:502")
+	sensorID := uuid.New().String()
+	_, err = tx.Exec(stmt1, sensorID, 0, assetID, 1, deviceID, duration, sensorName, sensorName, "modbus://10.0.0.2:502")
 
 	if err != nil {
 		log.Panic(err)
@@ -38,7 +38,18 @@ func CreateSensor(assetID, deviceID, paramGroupID, duration, sensorName string) 
 		"(asset_id, param_group_id, sensor_id) VALUES " +
 		"(?,?,?) "
 
-	_, err = tx.Exec(stmt2, assetID, paramGroupID, uid)
+	_, err = tx.Exec(stmt2, assetID, paramGroupID, sensorID)
+
+	if err != nil {
+		log.Panic(err)
+	}
+
+	uid := uuid.New().String()
+	stmt3 := "INSERT INTO sensor_status " +
+		"(id, collecting_rate, sensor_id, status) VALUES " +
+		"(?,?,?,?) "
+
+	_, err = tx.Exec(stmt3, uid, 100, sensorID, 1)
 
 	if err != nil {
 		log.Panic(err)

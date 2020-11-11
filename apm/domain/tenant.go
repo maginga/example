@@ -268,3 +268,51 @@ func CreateRoleOfTenant(orgCode, rootCatalogID, userID string) error {
 	log.Println("The role directory was created.")
 	return err
 }
+
+func CreateTypeOfTenant(orgCode string) error {
+	url := fmt.Sprintf("%v", viper.Get("metadata.grandview-url"))
+	db, err := sql.Open("mysql", url)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
+
+	tx, err := db.Begin()
+	if err != nil {
+		log.Panic(err)
+	}
+	defer tx.Rollback()
+
+	prefix := strings.ToLower(orgCode)
+
+	stmt1 := "INSERT INTO type " +
+		"(id, version, tenant_id, name, role, sequence, created_by, created_time, modified_by, modified_time) VALUES " +
+		"(?,?,?,?,?,?,'admin',NOW(),'admin',NOW()) "
+
+	_, err = tx.Exec(stmt1, prefix+"_type_alarm_status_01", 0, orgCode, "OPEN", "ALARM", 1)
+	_, err = tx.Exec(stmt1, prefix+"_type_alarm_status_02", 0, orgCode, "IN PROGRESS", "ALARM", 2)
+	_, err = tx.Exec(stmt1, prefix+"_type_alarm_status_03", 0, orgCode, "CLOSE", "ALARM", 3)
+	if err != nil {
+		log.Panic(err)
+	}
+
+	stmt2 := "INSERT INTO type " +
+		"(id, version, tenant_id, name, role, sequence, created_by, created_time, modified_by, modified_time) VALUES " +
+		"(?,?,?,?,?,?,'admin',NOW(),'admin',NOW()) "
+
+	_, err = tx.Exec(stmt2, prefix+"_type_depth_01", 0, orgCode, "FACTORY", "DEPTH", 1)
+	_, err = tx.Exec(stmt2, prefix+"_type_depth_02", 0, orgCode, "LINE", "DEPTH", 2)
+	_, err = tx.Exec(stmt2, prefix+"_type_depth_03", 0, orgCode, "AREA", "DEPTH", 3)
+	_, err = tx.Exec(stmt2, prefix+"_type_depth_04", 0, orgCode, "GROUP", "DEPTH", 4)
+	if err != nil {
+		log.Panic(err)
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		log.Panic(err)
+	}
+
+	log.Println("The alarm type was created.")
+	return err
+}

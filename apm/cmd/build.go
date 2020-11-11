@@ -105,6 +105,8 @@ For example: apm tenant build
 			tenantID, tenantName, _ = interactive.SelectTenant()
 		}
 
+		domain.CreateTypeOfTenant(tenantName)
+
 		log.Println(" ")
 		log.Println("===========================================")
 		log.Println("4. Create a Type. (ASSET, PARAM) (4/9) ")
@@ -183,7 +185,7 @@ For example: apm tenant build
 				parameterName, upper, target, lower, _ := interactive.PromptParameter(paramGroupID)
 				parameterID, _ := domain.CreateParameter(paramGroupID, parameterName)
 				log.Println("Parameter ID: " + parameterID)
-				domain.CreateParamSpecWithModel("", parameterID, upper, target, lower)
+				domain.CreateParamSpecWithModel(parameterID, upper, target, lower)
 
 				log.Println(" ")
 				r, _ := interactive.PromptAddMoreParameter()
