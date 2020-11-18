@@ -46,13 +46,27 @@ For example: apm tenant build
 
 			organizationName, orgID, _ = domain.CreateOrganization(po)
 
-			userID, userName, _ := interactive.SelectUser()
-			domain.LinkOrgMember(orgID, userID, userName)
-
 			log.Println("Result: " + organizationName)
 		} else {
 			orgID, organizationName, _ = interactive.SelectOrg()
 			log.Println("Result: " + organizationName)
+		}
+
+		u, _ := interactive.PromptAddUser()
+		if u == "y" {
+			for {
+				userID, userName, _ := interactive.SelectUser()
+				domain.LinkOrgMember(orgID, userID, userName)
+				domain.AddOrgMember(orgID, userID, userName)
+
+				log.Println(" ")
+				u, _ = interactive.PromptAddUser()
+				if u == "n" {
+					break
+				}
+			}
+		} else {
+			log.Println("You skipped this Step.")
 		}
 
 		log.Println(" ")
@@ -66,8 +80,8 @@ For example: apm tenant build
 				domain.CreateLocation(child, parents, depth)
 
 				log.Println(" ")
-				r, _ := interactive.PromptAddMoreLocation()
-				if r == "n" {
+				s, _ = interactive.PromptAddMoreLocation()
+				if s == "n" {
 					break
 				}
 			}

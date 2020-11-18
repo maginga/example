@@ -187,3 +187,34 @@ func LinkOrgMember(orgID, userID, userName string) error {
 
 	return err
 }
+
+func AddOrgMember(orgID, userID, userName string) error {
+	url := fmt.Sprintf("%v", viper.Get("metadata.grandview-url"))
+	db, err := sql.Open("mysql", url)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
+
+	tx, err := db.Begin()
+	if err != nil {
+		log.Panic(err)
+	}
+	defer tx.Rollback()
+
+	stmt := "INSERT INTO role_directory (id, directory_id, directory_name, directory_type, role_id, created_time) " +
+		"VALUES (uuid(),?,?,?,?,NOW())"
+
+	_, err = tx.Exec(stmt, userID, userName, "USER", orgID+"_ROLE_SYSTEM_ASSET_MANAGER")
+	if err != nil {
+		log.Panic(err)
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		log.Panic(err)
+	}
+
+	log.Println("You have added users to your organization.")
+	return err
+}
