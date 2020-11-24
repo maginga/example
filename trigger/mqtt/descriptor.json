@@ -98,6 +98,21 @@
         "name": "topicParams",
         "type": "params",
         "description": "The topic parameters"
+      },
+      {
+        "name": "assetName",
+        "type": "string",
+        "description": ""
+      },
+      {
+          "name": "sensorName",
+          "type": "string",
+          "description": ""
+      },
+      {
+          "name": "sensorType",
+          "type": "string",
+          "description": ""
       }
     ],
     "reply": [
