@@ -1,0 +1,43 @@
+{
+    "name": "apm-msgtransform",
+    "type": "flogo:activity",
+    "version": "0.0.2",
+    "title": "[APM] Message Transform Activity",
+    "description": "",
+    "settings":[
+      {
+        "name": "option",
+        "type": "string",
+        "description": ""
+      }
+    ],
+    "input": [
+        {
+            "name": "message",
+            "type": "string",
+            "required": true
+        },
+        {
+            "name": "assetName",
+            "type": "string",
+            "required": true
+        },
+        {
+            "name": "sensorName",
+            "type": "string",
+            "required": true
+        },
+        {
+            "name": "sensorType",
+            "type": "string",
+            "required": true
+        }
+    ],
+    "output": [
+      {
+        "name": "message",
+        "type": "string",
+        "description": ""
+      }
+    ]
+}
