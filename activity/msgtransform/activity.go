@@ -56,6 +56,8 @@ func (a *Activity) Eval(ctx activity.Context) (done bool, err error) {
 
 	// strict type
 	var newMapData map[string]interface{}
+	newMapData = make(map[string]interface{})
+
 	for key, value := range mapData {
 		str, _ := coerce.ToString(value)
 		f, err := strconv.ParseFloat(str, 64)
