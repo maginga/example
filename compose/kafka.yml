@@ -1,0 +1,154 @@
+version: "3.8"
+
+volumes:
+  kafka-logs:
+  kafka:
+
+networks:
+  private:
+    external: true
+    name: apm-net
+
+services:
+  kafka01:
+    image: wurstmeister/kafka:2.11-1.1.1
+    ports:
+     - 9094:9094
+    environment:
+      # Get container host's hostname
+      #HOSTNAME_COMMAND: "docker info | grep ^Name: | cut -d' ' -f 2"
+      # Get container host's IP
+      #HOSTNAME_COMMAND: "docker info | grep \"Node Address:\" | cut -d' ' -f 4"
+      KAFKA_ZOOKEEPER_CONNECT: "zoo1:2181,zoo2:2181,zoo3:2181"
+      KAFKA_BROKER_ID: 1
+      #KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT
+      #KAFKA_ADVERTISED_LISTENERS: "INSIDE://:9092,OUTSIDE://_{HOSTNAME_COMMAND}:9094"
+      #KAFKA_LISTENERS: INSIDE://:9092,OUTSIDE://0.0.0.0:9094
+      KAFKA_LISTENERS: PLAINTEXT://:9092
+      #KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: ${KAFKA_AUTO_CREATE_TOPIC:-false}
+      KAFKA_HEAP_OPTS: "-Xmx2G -Xms2G"
+      KAFKA_JMX_OPTS: "-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=127.0.0.1 -Dcom.sun.management.jmxremote.rmi.port=1099"
+      JMX_PORT: 1099
+    deploy:
+      mode: replicated
+      replicas: 1
+      update_config:
+        parallelism: 1
+        delay: 10s
+      placement:
+        max_replicas_per_node: 1
+        constraints:
+          - node.hostname==grandview-test-07
+      resources:
+        reservations:
+          cpus: '0.3'
+          memory: '3G'
+        limits:
+          cpus: '0.5'
+          memory: '4G'
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - kafka-logs:/tmp/kafka-logs
+      - kafka:/kafka
+    networks:
+      private:
+
+  kafka02:
+    image: wurstmeister/kafka:2.11-1.1.1
+    ports:
+     - 9095:9095
+    environment:
+      # Get container host's hostname
+      #HOSTNAME_COMMAND: "docker info | grep ^Name: | cut -d' ' -f 2"
+      # Get container host's IP
+      #HOSTNAME_COMMAND: "docker info | grep \"Node Address:\" | cut -d' ' -f 4"
+      KAFKA_ZOOKEEPER_CONNECT: "zoo1:2181,zoo2:2181,zoo3:2181"
+      KAFKA_BROKER_ID: 2
+      #KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT
+      #KAFKA_ADVERTISED_LISTENERS: "INSIDE://:9092,OUTSIDE://_{HOSTNAME_COMMAND}:9094"
+      #KAFKA_LISTENERS: INSIDE://:9092,OUTSIDE://0.0.0.0:9095
+      KAFKA_LISTENERS: PLAINTEXT://:9092
+      #KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: ${KAFKA_AUTO_CREATE_TOPIC:-false}
+      KAFKA_HEAP_OPTS: "-Xmx2G -Xms2G"
+      KAFKA_JMX_OPTS: "-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=127.0.0.1 -Dcom.sun.management.jmxremote.rmi.port=1099"
+      JMX_PORT: 1099
+    deploy:
+      mode: replicated
+      replicas: 1
+      update_config:
+        parallelism: 1
+        delay: 10s
+      placement:
+        max_replicas_per_node: 1
+        constraints:
+          - node.hostname==grandview-test-08
+      resources:
+        reservations:
+          cpus: '0.3'
+          memory: '3G'
+        limits:
+          cpus: '0.5'
+          memory: '4G'
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - kafka-logs:/tmp/kafka-logs
+      - kafka:/kafka
+    networks:
+      private:
+
+  kafka03:
+    image: wurstmeister/kafka:2.11-1.1.1
+    ports:
+      - 9096:9096
+    environment:
+      # Get container host's hostname
+      #HOSTNAME_COMMAND: "docker info | grep ^Name: | cut -d' ' -f 2"
+      # Get container host's IP
+      #HOSTNAME_COMMAND: "docker info | grep \"Node Address:\" | cut -d' ' -f 4"
+      KAFKA_ZOOKEEPER_CONNECT: "zoo1:2181,zoo2:2181,zoo3:2181"
+      KAFKA_BROKER_ID: 3
+      #KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT
+      #KAFKA_ADVERTISED_LISTENERS: "INSIDE://:9092,OUTSIDE://_{HOSTNAME_COMMAND}:9094"
+      #KAFKA_LISTENERS: INSIDE://:9092,OUTSIDE://0.0.0.0:9096
+      KAFKA_LISTENERS: PLAINTEXT://:9092
+      #KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: ${KAFKA_AUTO_CREATE_TOPIC:-false}
+      KAFKA_HEAP_OPTS: "-Xmx2G -Xms2G"
+      KAFKA_JMX_OPTS: "-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=127.0.0.1 -Dcom.sun.management.jmxremote.rmi.port=1099"
+      JMX_PORT: 1099    
+    deploy:
+      mode: replicated
+      replicas: 1
+      update_config:
+        parallelism: 1
+        delay: 10s
+      placement:
+        max_replicas_per_node: 1
+        constraints:
+          - node.hostname==grandview-test-09
+      resources:
+        reservations:
+          cpus: '0.3'
+          memory: '3G'
+        limits:
+          cpus: '0.5'
+          memory: '4G'
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - kafka-logs:/tmp/kafka-logs
+      - kafka:/kafka
+    networks:
+      private:
+
+  # kafka-manager:
+  #   image: sheepkiller/kafka-manager
+  #   environment:
+  #     ZK_HOSTS: "zoo1:2181,zoo2:2181,zoo3:2181"
+  #     APPLICATION_SECRET: ${KAFKA_MANAGER_PASSWORD:-@dminP@ssw0rd}
+  #   ports:
+  #    # Following the scheme, https://github.com/prometheus/prometheus/wiki/Default-port-allocations
+  #    - 9001:9000
+  #   networks:
+  #     private:

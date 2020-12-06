@@ -1,0 +1,32 @@
+version: "3.8"
+
+services:
+  grafana:
+    image: grafana/grafana
+    ports:
+      - 3000:3000
+    networks:
+      - monitoring    
+    environment:
+      - "GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWD:-@dminP@ssw0rd}"
+    volumes:
+      - grafana:/var/lib/grafana
+    deploy:
+      mode: replicated
+      replicas: 1
+      resources:
+        limits:
+          cpus: '0.50'
+        reservations:
+          cpus: '0.30'
+      placement:
+        constraints:
+          - "node.labels.${GRAFANA_LABEL:-service==grafana}"
+
+networks:
+  private:
+    external: true
+    name: apm-net
+
+volumes:
+  grafana: {}

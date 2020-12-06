@@ -1,0 +1,30 @@
+version: "3.8"
+
+networks:
+  private:
+    external: true
+    name: apm-net
+
+volumes:
+  db_data:
+
+services:
+  db:
+    image: mariadb:10.4
+    ports:
+    - 3306:3306
+    environment:
+      MYSQL_ROOT_PASSWORD: bistel01
+      MARIADB_EXTRA_FLAGS: "--max-connect-errors=1000 --max_connections=200"
+      #TZ: UTC or Asia/Seoul # Please set time zone if you want to change it.
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      private:        
+
+  adminer:
+    image: adminer
+    ports:
+      - 8089:8080
+    networks:
+      private:
