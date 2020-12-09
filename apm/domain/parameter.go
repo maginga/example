@@ -57,9 +57,7 @@ func CreateParamSpecWithModel(paramID, upper, target, lower string) (string, err
 	}
 	defer tx.Rollback()
 
-	stmt1 := "INSERT INTO parameter_value " +
-		"(id, asset_id, param_id, props) VALUES " +
-		"(?,?,?,?) "
+	stmt1 := "INSERT INTO parameter_value (id, asset_id, param_id, props) VALUES (?,?,?,?) "
 
 	uid := uuid.New().String()
 	_, err = tx.Exec(stmt1, uid, nil, paramID,
@@ -83,7 +81,7 @@ func CreateParamSpecWithModel(paramID, upper, target, lower string) (string, err
 	return uid, err
 }
 
-func CreateParamSpecWithAsset(assetID, paramGroupID string) (string, error) {
+func CreateParamSpecWithAsset(assetID, tenantID, paramGroupID string) (string, error) {
 	url := fmt.Sprintf("%v", viper.Get("metadata.grandview-url"))
 	db, err := sql.Open("mysql", url)
 	if err != nil {
@@ -96,13 +94,22 @@ func CreateParamSpecWithAsset(assetID, paramGroupID string) (string, error) {
 		log.Panic(err)
 	}
 	defer tx.Rollback()
-	uid := uuid.New().String()
+	// uid := uuid.New().String()
+
+	// stmt1 := "INSERT INTO parameter_value (id, asset_id, param_id, props) " +
+	// 	"SELECT  uuid() as id, '" + assetID + "' as asset_id, p.id as param_id, v.props " +
+	// 	"FROM parameter p, parameter_value v " +
+	// 	"WHERE p.param_group_id='" + paramGroupID + "' " +
+	// 	"AND p.id=v.param_id "
 
 	stmt1 := "INSERT INTO parameter_value (id, asset_id, param_id, props) " +
-		"SELECT  '" + uid + "' as id, '" + assetID + "' as asset_id, p.id as param_id, v.props " +
-		"FROM parameter p, parameter_value v " +
-		"WHERE p.param_group_id='" + paramGroupID + "' " +
-		"AND p.id=v.param_id "
+		"SELECT  uuid() as id, '" + assetID + "' as asset_id, p.id as param_id, v.props " +
+		"FROM param_group g, parameter p, parameter_value v " +
+		"WHERE g.tenant_id='" + tenantID + "' " +
+		"AND g.id=p.param_group_id " +
+		"AND p.param_group_id='" + paramGroupID + "' " +
+		"AND p.id=v.param_id " +
+		"AND v.asset_id is null "
 
 	_, err = tx.Exec(stmt1)
 
@@ -116,5 +123,5 @@ func CreateParamSpecWithAsset(assetID, paramGroupID string) (string, error) {
 	}
 
 	log.Println("This parameter spec has been created.")
-	return uid, err
+	return "", err
 }

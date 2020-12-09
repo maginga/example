@@ -247,7 +247,7 @@ For example: apm tenant build
 			phyAsset, assetID, _ := domain.CreateAsset(tenantID, templateID, catalogID, nestID, assetName)
 			log.Println("Physical Asset Name: " + phyAsset)
 
-			domain.CreateParamSpecWithAsset(assetID, paramGroupID)
+			domain.CreateParamSpecWithAsset(assetID, tenantID, paramGroupID)
 
 			deviceID, _, _ := interactive.SelectDevice(tenantID)
 			log.Println("device is selected: " + deviceID)

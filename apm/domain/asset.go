@@ -96,19 +96,19 @@ func CreateAsset(tenantID, templateID, catalogID, nestID, assetName string) (str
 		log.Panic(err)
 	}
 
-	pvid := uuid.New().String()
-	stmt3 := "INSERT INTO parameter_value (id, asset_id, param_id, props) " +
-		"SELECT '" + pvid + "' as id, '" + uid + "' as asset_id, v.param_id, v.props as props " +
-		"FROM param_group g, parameter p, parameter_value v " +
-		"WHERE g.tenant_id='" + tenantID + "'" +
-		"AND g.id=p.param_group_id " +
-		"AND p.id=v.param_id " +
-		"AND v.asset_id is null"
-	_, err = tx.Exec(stmt3)
+	// pvid := uuid.New().String()
+	// stmt3 := "INSERT INTO parameter_value (id, asset_id, param_id, props) " +
+	// 	"SELECT '" + pvid + "' as id, '" + uid + "' as asset_id, v.param_id, v.props as props " +
+	// 	"FROM param_group g, parameter p, parameter_value v " +
+	// 	"WHERE g.tenant_id='" + tenantID + "'" +
+	// 	"AND g.id=p.param_group_id " +
+	// 	"AND p.id=v.param_id " +
+	// 	"AND v.asset_id is null"
+	// _, err = tx.Exec(stmt3)
 
-	if err != nil {
-		log.Panic(err)
-	}
+	// if err != nil {
+	// 	log.Panic(err)
+	// }
 
 	err = tx.Commit()
 	if err != nil {
