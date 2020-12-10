@@ -1,0 +1,5 @@
+brokerList: [192.168.100.210:9092]
+topic: apm-trace-bistel-org-nest-resonance
+maxRetry: 5
+assets: 100
+fileName: ./sensor.csv

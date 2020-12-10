@@ -1,0 +1,8 @@
+url: apm:bistel01@tcp(192.168.100.199:3306)/apmdb
+tenantId: BISTEL_ORG
+nestId: bistel-org-nest-resonance
+templateId: 29741d6e-e4b3-4941-9a72-b90a073f7a8b
+catalogId: c5d518bf-74d7-4f2a-b58d-9f790f59e43f
+paramGroupId: bffc3950-72b5-4a44-84ed-78022bd605f3
+deviceId: a80fbd7a-387b-424c-a44d-4c300b57ff47
+

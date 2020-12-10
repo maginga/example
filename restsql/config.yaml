@@ -1,0 +1,3 @@
+url: "http://52.176.96.208:8082/druid/v2/sql/"
+sql: "SELECT * FROM apm_trace_bistel_org_nest_silence where __time >= '2020-12-07 12:53:00' and assetId = 'Pump01' ORDER BY __time DESC LIMIT 1"
+interval: 1

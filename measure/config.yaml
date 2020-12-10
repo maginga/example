@@ -1,0 +1,4 @@
+brokerList: [192.168.100.210:9092]
+topic: apm-trace-bistel-org-nest-resonance
+partition: 0
+offsetType: 0
