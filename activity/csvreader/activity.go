@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/araddon/dateparse"
 	"github.com/project-flogo/core/activity"
 	"github.com/project-flogo/core/data/metadata"
 )
@@ -93,8 +94,13 @@ func (a *Activity) Eval(ctx activity.Context) (done bool, err error) {
 			if timeColIndex < 0 {
 				valueMap["event_time"] = nil
 			} else {
-				t, _ := ParseLocal(record[timeColIndex])
-				valueMap["event_time"] = t.Format(time.RFC3339)
+				// t, _ := ParseLocal(record[timeColIndex])
+				taipeiLoc, _ := time.LoadLocation(a.settings.TimeZone)
+				t, err := dateparse.ParseIn(record[timeColIndex], taipeiLoc)
+				if err != nil {
+					ctx.Logger().Errorf("err: %v", err)
+				}
+				valueMap["event_time"] = t.UTC().Format(time.RFC3339)
 			}
 
 			valueMap["assetId"] = input.AssetName

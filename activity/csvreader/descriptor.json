@@ -1,7 +1,7 @@
 {
   "name": "apm-csvreader",
   "type": "flogo:activity",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "title": "[APM] CSV Reader Activity",
   "description": "Reading given CSV",
   "settings":[
@@ -14,6 +14,11 @@
       "name": "excludeColumns",
       "type": "string",
       "description": "This value specifies the columns to be excluded and can be specified in multiple numbers using a comma."
+    },
+    {
+      "name": "timeZone",
+      "type": "string",
+      "description": "Asia/Seoul, Asia/Taipei"
     }
   ],
   "input": [
