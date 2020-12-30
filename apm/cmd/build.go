@@ -57,7 +57,7 @@ For example: apm tenant build
 			for {
 				userID, userName, _ := interactive.SelectUser()
 				domain.LinkOrgMember(orgID, userID, userName)
-				domain.AddOrgMember(orgID, userID, userName)
+				//domain.AddOrgMember(orgID, userID, userName)
 
 				log.Println(" ")
 				u, _ = interactive.PromptAddUser()

@@ -202,8 +202,8 @@ func AddOrgMember(orgID, userID, userName string) error {
 	}
 	defer tx.Rollback()
 
-	stmt := "INSERT INTO role_directory (id, directory_id, directory_name, directory_type, role_id, created_time) " +
-		"VALUES (uuid(),?,?,?,?,NOW())"
+	stmt := "INSERT INTO role_directory (directory_id, directory_name, directory_type, role_id, created_time) " +
+		"VALUES (?,?,?,?,NOW())"
 
 	_, err = tx.Exec(stmt, userID, userName, "USER", orgID+"_ROLE_SYSTEM_ASSET_MANAGER")
 	if err != nil {

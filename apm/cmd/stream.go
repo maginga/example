@@ -49,28 +49,36 @@ For example: apm create stream [refiner, alarm, paramalarm, fdc, spc, mva, bae, 
 		log.Println("Flink Version: " + d.FlinkVersion)
 
 		k, err := c.Jars()
+		existed := false
+		jarID := ""
 		for _, f := range k.Files {
-			log.Println("Existed Jars: " + f.ID)
+			if f.Name == jarFile {
+				existed = true
+				jarID = f.ID
+				log.Println("Existed Jars ID: " + jarID)
+				break
+			}
 		}
 
-		u, err := c.UploadJar(jarFile)
-		if err != nil {
-			panic(err)
-		}
-
-		if len(u.FileName) > 0 {
+		if !existed {
+			u, err := c.UploadJar(jarFile)
+			if err != nil {
+				panic(err)
+			}
 			log.Println("file location: " + u.FileName)
 			log.Println("This Jar was uploaded.")
+			ids := strings.Split(u.FileName, "/")
+			jarID = ids[len(ids)-1]
+			log.Println("New Jars ID: " + jarID)
+		}
 
+		if len(jarID) > 0 {
 			apmAddr := fmt.Sprintf("%v", viper.Get("grandview.url"))
 			nestID := args[1]
 			specURL := "http://" + apmAddr + "/api/spec/" + nestID
 
-			jarID := strings.Split(u.FileName, "/")
-			log.Println("jar ID: " + jarID[len(jarID)-1])
-
 			opts := client.RunOpts{}
-			opts.JarID = jarID[len(jarID)-1]
+			opts.JarID = jarID
 
 			if args[0] == "refiner" {
 				opts.EntryClass = "com.skt.apm.refinement.ParameterRefiner"

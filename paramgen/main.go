@@ -46,7 +46,7 @@ func main() {
 	colCnt := len(rows[0])
 	rowCnt := len(rows)
 
-	for c := 1; c < colCnt; c++ {
+	for c := 2; c < colCnt; c++ {
 		colValues := make([]float64, 0)
 		columnName := rows[0][c]
 

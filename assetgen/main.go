@@ -27,7 +27,7 @@ func main() {
 	}
 	defer db.Close()
 
-	for i := 1; i <= 100; i++ {
+	for i := 1; i <= 1; i++ {
 		assetName := "Pump" + strconv.Itoa(i)
 		sensorName := "S" + strconv.Itoa(i)
 		update(db, assetName, sensorName, &config)
@@ -68,7 +68,7 @@ func update(db *sql.DB, assetName, sensorName string, config *Config) {
 			  "name": "Manufacturer",
 			  "referenceType": "",
 			  "seq": "2",
-			  "value": "Manufacturer0102"
+			  "value": "Innolux"
 			},
 			{
 			  "dataType": "String",
@@ -81,7 +81,7 @@ func update(db *sql.DB, assetName, sensorName string, config *Config) {
 			  "name": "Frame",
 			  "referenceType": "",
 			  "seq": "3",
-			  "value": "Frame0102"
+			  "value": "Frame01"
 			}
 		  ]`
 
