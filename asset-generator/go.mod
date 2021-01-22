@@ -1,4 +1,4 @@
-module example/assetgen
+module example/asset-generator
 
 go 1.15
 
