@@ -1,0 +1,7 @@
+path: ./gen.sql
+tenantId: DEFAULT_ORG
+catalogId: catalog_asset_03
+templateId: poc_asset_model_01
+typeId: type_asset_02
+nestId: default_nest_01
+paramGroupId: poc_param_group_param_01

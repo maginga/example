@@ -325,7 +325,7 @@ func (c *DruidClient) CreateScore(nestID string) (string, error) {
 		"segGranularity": "DAY",
 		"ingestion": {
 		  "type": "realtime",
-		  "topic": "apm-score-` + nestID + `",
+		  "topic": "apm-score-` + strings.ReplaceAll(nestID, "_", "-") + `",
 		  "consumerType": "KAFKA",
 		  "consumerProperties": {
 			"bootstrap.servers": "` + bootstrapServer + `"
@@ -460,7 +460,7 @@ func (c *DruidClient) CreateTrace(nestID string) (string, error) {
 	rows, err := db.Query(`SELECT p.logical_type, p.data_type, p.physical_name 
 	FROM nest n, nest_egg g, sensor s, sensor_param_group_join j, parameter p
 	WHERE n.id=g.nest_id
-	and n.name=?
+	and n.id=?
 	and s.asset_id=g.asset_id
 	and s.id = j.sensor_id
 	and j.param_group_id = p.param_group_id
@@ -501,7 +501,7 @@ func (c *DruidClient) CreateTrace(nestID string) (string, error) {
 		"segGranularity": "DAY",
 		"ingestion": {
 		  "type": "realtime",
-		  "topic": "apm-trace-` + nestID + `",
+		  "topic": "apm-trace-` + strings.ReplaceAll(nestID, "_", "-") + `",
 		  "consumerType": "KAFKA",
 		  "consumerProperties": {
 			"bootstrap.servers": "` + bootstrapServer + `"
