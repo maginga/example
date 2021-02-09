@@ -1,0 +1,9 @@
+sudo docker run -d --privileged=true \
+-p 3306:3306 \
+--name=mariadb \
+-v /home/user/grandview/data/mariadb:/var/lib/mysql \
+-e MYSQL_ROOT_PASSWORD=bistel01 \
+mariadb:10.4.12 \
+--character-set-server=utf8 
+
+
