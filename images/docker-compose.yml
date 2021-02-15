@@ -1,0 +1,190 @@
+version: '3.1'
+
+networks:
+  stream:
+
+services:
+  zoo1:
+    image: zookeeper:3.4
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: '125m'
+    restart: always
+    hostname: zoo1
+    volumes:
+      - /datadrive/vol1/zk-data:/var/lib/zookeeper/data
+      - /datadrive/vol1/zk-txn-logs:/var/lib/zookeeper/log
+    ports:
+      - 2181:2181
+    environment:
+      ZOO_MY_ID: 1
+      ZOO_SERVERS: server.1=0.0.0.0:2888:3888 server.2=zoo2:2888:3888 server.3=zoo3:2888:3888
+    networks:
+      - stream
+
+  zoo2:
+    image: zookeeper:3.4
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: '125m'
+    restart: always
+    hostname: zoo2
+    volumes:
+      - /datadrive/vol2/zk-data:/var/lib/zookeeper/data
+      - /datadrive/vol2/zk-txn-logs:/var/lib/zookeeper/log
+    ports:
+      - 2182:2181
+    environment:
+      ZOO_MY_ID: 2
+      ZOO_SERVERS: server.1=zoo1:2888:3888 server.2=0.0.0.0:2888:3888 server.3=zoo3:2888:3888
+    networks:
+      - stream
+
+  zoo3:
+    image: zookeeper:3.4
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: '125m'
+    restart: always
+    hostname: zoo3
+    volumes:
+      - /datadrive/vol3/zk-data:/var/lib/zookeeper/data
+      - /datadrive/vol3/zk-txn-logs:/var/lib/zookeeper/log
+    ports:
+      - 2183:2181
+    environment:
+      ZOO_MY_ID: 3
+      ZOO_SERVERS: server.1=zoo1:2888:3888 server.2=zoo2:2888:3888 server.3=0.0.0.0:2888:3888
+    networks:
+      - stream
+
+  kafka1:
+    image: confluentinc/cp-kafka:4.1.3
+    hostname: kafka1
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: '1024m'
+    ports:
+      - 9092:9092
+    volumes:
+      - /datadrive/vol1/kafka-data:/var/lib/kafka/data
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zoo1:2181,zoo2:2182,zoo3:2183
+      KAFKA_LISTENERS: PLAINTEXT://:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://grandpipe.centralus.cloudapp.azure.com:9092
+    depends_on:
+      - zoo1
+      - zoo2
+      - zoo3
+    networks:
+      - stream
+
+  kafka2:
+    image: confluentinc/cp-kafka:4.1.3
+    hostname: kafka2
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: '1024m'
+    ports:
+      - 9093:9092
+    volumes:
+      - /datadrive/vol2/kafka-data:/var/lib/kafka/data
+    environment:
+      KAFKA_BROKER_ID: 2
+      KAFKA_ZOOKEEPER_CONNECT: zoo1:2181,zoo2:2182,zoo3:2183
+      KAFKA_LISTENERS: PLAINTEXT://:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://grandpipe.centralus.cloudapp.azure.com:9093
+    depends_on:
+      - zoo1
+      - zoo2
+      - zoo3
+    networks:
+      - stream
+
+  kafka3:
+    image: confluentinc/cp-kafka:4.1.3
+    hostname: kafka3
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: '1024m'
+    ports:
+      - 9094:9092
+    volumes:
+      - /datadrive/vol3/kafka-data:/var/lib/kafka/data
+    environment:
+      KAFKA_BROKER_ID: 3
+      KAFKA_ZOOKEEPER_CONNECT: zoo1:2181,zoo2:2182,zoo3:2183
+      KAFKA_LISTENERS: PLAINTEXT://:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://grandpipe.centralus.cloudapp.azure.com:9094
+    depends_on:
+      - zoo1
+      - zoo2
+      - zoo3
+    networks:
+      - stream
+
+  jobmanager:
+    image: flink:1.9.1-scala_2.11
+    ports:
+      - 8081:8081
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: '512m'
+    command: jobmanager
+    environment:
+      - |
+        FLINK_PROPERTIES=
+        jobmanager.rpc.address: jobmanager
+    networks:
+      - stream
+
+  taskmanager:
+    image: flink:1.9.1-scala_2.11
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: '2048m'
+    command: jobmanager
+    depends_on:
+      - jobmanager
+    command: taskmanager
+    scale: 3
+    environment:
+      - |
+        FLINK_PROPERTIES=
+        jobmanager.rpc.address: jobmanager
+        taskmanager.numberOfTaskSlots: 4
+    networks:
+      - stream
+
+  db:
+    image: mariadb:10.4.12
+    restart: always
+    ports:
+      - 3306:3306
+    volumes:
+      - /datadrive/mariadb:/var/lib/mysql
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: '1024m'
+    environment:
+      MYSQL_ROOT_PASSWORD: bistel01
+      
