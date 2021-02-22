@@ -37,8 +37,8 @@ func checkError(err error) {
 func main() {
 	c := loadYml()
 
-	assetNum := 50
-	paramNum := 200
+	assetNum := 200
+	paramNum := 100
 
 	f, err := os.OpenFile(c.FilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {

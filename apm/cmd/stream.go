@@ -90,13 +90,13 @@ For example: apm create stream [refiner, alarm, paramalarm, fdc, spc, mva, bae, 
 				opts.EntryClass = "com.skt.apm.alarm.asset.AssetAlarm"
 				opts.ProgramArg = []string{"--job-name", nestID + "-AssetAlarm",
 					"--specification-url", specURL,
-					"--program-identifier", "asset"}
+					"--program-identifier", "alarm/asset"}
 				opts.Parallelism = 1
 			} else if args[0] == "paramalarm" {
 				opts.EntryClass = "com.skt.apm.alarm.parameter.ParameterAlarm"
 				opts.ProgramArg = []string{"--job-name", nestID + "-ParamAlarm",
 					"--specification-url", specURL,
-					"--program-identifier", "parameter"}
+					"--program-identifier", "alarm/parameter"}
 				opts.Parallelism = 1
 			} else if args[0] == "fdc" {
 				opts.EntryClass = "com.bistel.apm.model.uv.oos.FDModel"
