@@ -1,4 +1,4 @@
-module example/sensor
+module example/mqtt-sensor
 
 go 1.15
 

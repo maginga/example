@@ -1,0 +1,5 @@
+brokerUrl: ["1.227.57.115:9092"]
+assetList: ["Pump01","Pump02"]
+topic: test
+filePath: ./sensor.csv
+loop: 10000
