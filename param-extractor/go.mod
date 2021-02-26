@@ -1,4 +1,4 @@
-module example/paramgen
+module example/param-extractor
 
 go 1.15
 

@@ -46,7 +46,7 @@ func main() {
 	colCnt := len(rows[0])
 	rowCnt := len(rows)
 
-	for c := 2; c < colCnt; c++ {
+	for c := 1; c < colCnt; c++ {
 		colValues := make([]float64, 0)
 		columnName := rows[0][c]
 
@@ -74,6 +74,11 @@ func update(db *sql.DB, group, param string, l, u, t float64) {
 	}
 	defer tx.Rollback()
 
+	/*
+		create param group
+		insert into apmdb.param_group (id, created_by, created_time, modified_by, modified_time, version, tenant_id, description, name, type_id)
+		values(uuid(), 'qcell', NOW(), 'qcell', NOW(), 0, 'QCELL_ORG','Injector, High & Throtle Valve, Dry Pump', 'QCELL PoC Parameters','94cd00c9-9fdd-4e9e-9dfe-068054d4387a');
+	*/
 	stmt1 := "INSERT INTO parameter " +
 		"(id, version, data_type, logical_type, name, physical_name, sequence, param_group_id, created_by, created_time, modified_by, modified_time) VALUES " +
 		"(?,?,?,?,?,?,?,?,'admin',NOW(),'admin',NOW())"
@@ -85,10 +90,10 @@ func update(db *sql.DB, group, param string, l, u, t float64) {
 		log.Panic(err)
 	}
 
-	stmt2 := "INSERT INTO parameter_value (id, asset_id, param_id, props) VALUES (?,?,?,?) "
+	stmt2 := "INSERT INTO parameter_value (id, param_id, props) VALUES (?,?,?) "
 
 	pvID := uuid.New().String()
-	_, err = tx.Exec(stmt2, pvID, nil, paramID,
+	_, err = tx.Exec(stmt2, pvID, paramID,
 		`{
 			"type": "default",
 			"lowerLimit": `+fmt.Sprintf("%f", l)+`,
