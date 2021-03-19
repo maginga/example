@@ -61,6 +61,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	client := connect("pub", uri)
 
 	file, _ := os.Open(config.FilePath)
@@ -86,16 +87,29 @@ func main() {
 			}
 
 			eventTime := time.Now().UTC().Format(time.RFC3339) // 2019-01-12T01:02:03Z
-			valueMap["event_time"] = eventTime
+			valueMap["time"] = eventTime
 
 			for j, val := range row {
 				valueMap[header[j]] = val
 			}
 
-			mapString, _ := json.Marshal(valueMap)
-			jsonMsg := string(mapString)
-			client.Publish(topic, 0, false, jsonMsg)
-			log.Printf("event: %v", jsonMsg)
+			for serialNo := 1; serialNo <= config.Serial; serialNo++ {
+				targetMap := make(map[string]interface{})
+				for key, value := range valueMap {
+					targetMap[key] = value
+				}
+
+				strVal := fmt.Sprintf("%03d", serialNo)
+				targetMap["Serial_No"] = strVal
+
+				go func(serialNo int, valueMap map[string]interface{}) {
+					mapString, _ := json.Marshal(valueMap)
+					jsonMsg := string(mapString)
+					client.Publish(topic, 0, false, jsonMsg)
+					log.Printf("event: %v", jsonMsg)
+
+				}(serialNo, targetMap)
+			}
 
 			time.Sleep(time.Second * 1)
 		}

@@ -96,7 +96,7 @@ func main() {
 				}(assetName, targetMap)
 			}
 
-			time.Sleep(time.Second * 30)
+			time.Sleep(time.Second * 60)
 		}
 	}
 }

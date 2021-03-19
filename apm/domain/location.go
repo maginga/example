@@ -75,16 +75,16 @@ func CreateLocation(child string, parents string, depth string) error {
 		// }
 	}
 
-	stmt0 := "INSERT INTO authority (id, item_id, item_type) VALUES (?,?,?)"
-	_, err = tx.Exec(stmt0, "authority_"+id, id, "CATALOG")
-	if err != nil {
-		log.Panic(err)
-	}
+	// stmt0 := "INSERT INTO authority (id, item_id, item_type) VALUES (?,?,?)"
+	// _, err = tx.Exec(stmt0, "authority_"+id, id, "CATALOG")
+	// if err != nil {
+	// 	log.Panic(err)
+	// }
 
-	err = tx.Commit()
-	if err != nil {
-		log.Panic(err)
-	}
+	// err = tx.Commit()
+	// if err != nil {
+	// 	log.Panic(err)
+	// }
 
 	log.Println("The location was created.")
 	return err

@@ -5,4 +5,5 @@ type Config struct {
 	Topic    string `yaml:"topic"`
 	FilePath string `yaml:"filePath"`
 	Loop     int    `yaml:"loop"`
+	Serial   int    `yaml:"serial"`
 }

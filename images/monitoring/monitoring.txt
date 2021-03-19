@@ -1,0 +1,45 @@
+
+sudo docker run -d \
+  --name node-exporter \
+  --net=host \
+  --pid=host \
+  -v "/:/host:ro,rslave" \
+  quay.io/prometheus/node-exporter:latest \
+  --path.rootfs=/host
+
+sudo docker run \
+  -p 8080:8080 \
+  --detach=true \
+  --name=cadvisor \
+  --volume=/:/rootfs:ro \
+  --volume=/var/run:/var/run:rw \
+  --volume=/sys:/sys:ro \
+  --volume=/var/lib/docker/:/var/lib/docker:ro \
+  --volume=/dev/disk/:/dev/disk:ro \
+  google/cadvisor
+
+
+
+sudo docker run \
+	-d \
+  --name prometheus-node \
+  -h prometheus-node \
+  -v /etc/prometheus:/etc/prometheus \
+  prom/prometheus
+
+sudo docker run \
+  -d \
+  --name prometheus-cadvisor \
+  -h prometheus-cadvisor \
+  -v /etc/prometheus:/etc/prometheus \
+  prom/prometheus
+
+sudo docker run -d \
+  --name grafana \
+  -h grafana \
+  -p 3000:3000 \
+  -e GF_SECURITY_ADMIN_PASSWORD=bistel01 \
+  --link prometheus-node:prometheus-node \
+  --link prometheus-cadvisor:prometheus-cadvisor \
+  grafana/grafana
+

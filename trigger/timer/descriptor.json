@@ -1,0 +1,22 @@
+{
+    "name": "apm-timer",
+    "type": "flogo:trigger",
+    "version": "0.0.1",
+    "title": "[APM] Timer",
+    "description": "Simple Timer trigger",
+    "homepage": "",
+    "handler": {
+      "settings": [
+        {
+          "name": "startDelay",
+          "type": "string",
+          "description": "The start delay (ex. 1m, 1h, etc.), immediate if not specified"
+        },
+        {
+          "name": "repeatInterval",
+          "type": "string",
+          "description": "The repeat interval (ex. 1m, 1h, etc.), doesn't repeat if not specified"
+        }
+      ]
+    }
+  }

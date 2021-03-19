@@ -1,4 +1,5 @@
-mqttUrl: mqtt://1.227.57.115:1883/
-topic: sensor-1
+mqttUrl: mqtt://192.168.100.199:1883/
+topic: test
 filePath: ./sensor.csv
 loop: 10000
+serial: 10
