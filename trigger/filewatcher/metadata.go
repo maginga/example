@@ -1,4 +1,4 @@
-package filewatcher2
+package filewatcher
 
 import (
 	"github.com/project-flogo/core/data/coerce"

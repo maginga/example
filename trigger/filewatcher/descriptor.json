@@ -1,5 +1,5 @@
 {
-  "name": "apm-filewatcher2",
+  "name": "apm-filewatcher",
   "type": "flogo:trigger",
   "version": "0.0.1",
   "title": "[APM] Asset File Watcher Trigger",

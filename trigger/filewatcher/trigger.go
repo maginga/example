@@ -1,4 +1,4 @@
-package filewatcher2
+package filewatcher
 
 import (
 	"context"
