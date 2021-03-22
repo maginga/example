@@ -6,8 +6,11 @@ import (
 	"example/rdbms-connector/rdb"
 	"io/ioutil"
 	"log"
+	"os"
+	"os/signal"
 	"path/filepath"
 	"runtime"
+	"syscall"
 	"time"
 
 	_ "github.com/denisenkom/go-mssqldb"
@@ -19,6 +22,9 @@ import (
 
 func main() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
+
+	signalChan := make(chan os.Signal, 1)
+	signal.Notify(signalChan, syscall.SIGHUP, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGUSR1)
 
 	filename, _ := filepath.Abs("./config.yaml")
 	yamlFile, err := ioutil.ReadFile(filename)
@@ -151,7 +157,17 @@ func main() {
 	}
 
 	// Keep the program from not exiting.
-	runtime.Goexit()
+	//runtime.Goexit()
+
+	for {
+		signal := <-signalChan
+		switch signal {
+		case syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM:
+			break
+		default:
+			//fmt.Printf("Unknown signal(%d)\n", signal)
+		}
+	}
 }
 
 func newProducer(brokers []string) (sarama.SyncProducer, error) {
