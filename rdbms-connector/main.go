@@ -75,8 +75,9 @@ func main() {
 				}
 
 				params := make(map[string]interface{})
-				params["sync02"] = 1
-				params["sn"] = keyName
+				params["status"] = 1
+				params["assetName"] = keyName
+				params["startTime"] = config.StartTime
 
 				rows, err := db.Query(sqlStatement.ToStatementSQL(params))
 				if err != nil {
@@ -116,7 +117,7 @@ func main() {
 						log.Printf("[%s] FAILED to send message: %s\n", keyName, err)
 					} else {
 						log.Printf("[%s] message: %s\n", keyName, message)
-						//log.Printf("[%s] message sent to partition %d at offset %d\n", keyName, partition, offset)
+						log.Printf("[%s] message sent to partition %d at offset %d\n", keyName, partition, offset)
 					}
 					time.Sleep(time.Millisecond * 50)
 				}
