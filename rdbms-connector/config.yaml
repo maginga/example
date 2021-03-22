@@ -1,0 +1,8 @@
+connString: server=192.168.250.1;user id=icsuser;password=Adixen74;port=1433
+repeatInterval: 5m
+brokerUrl: ["1.227.57.115:9092"]
+topic: "apm-trace-default-nest-01"
+query: "SELECT * FROM dbo.history"
+sensorName: "S01"
+sensorType: "Pump"
+assetList: ["AP0000001"]
