@@ -1,9 +1,9 @@
-connString: server=192.168.250.1;user id=icsuser;password=Adixen74;port=1433
-repeatInterval: 5m
+connString: server=192.168.250.1;user id=icsuser;password=Adixen74;database=ICS
+repeatInterval: 1m
 brokerUrl: ["10.100.60.40:9092"]
-topic: "apm-trace-default-nest-01"
+topic: apm-trace-default-nest-01
 query: "SELECT * FROM dbo.history WHERE sync02 = :status AND sn = :assetName AND ts >= :startTime"
 startTime: "2021-03-23 12:00:00"
-sensorName: "S01"
-sensorType: "Pump"
+sensorName: S01
+sensorType: Pump
 assetList: ["AP0000001"]
