@@ -10,4 +10,5 @@ type Config struct {
 	SensorName     string   `yaml:"sensorName"`
 	SensorType     string   `yaml:"sensorType"`
 	AssetList      []string `yaml:"assetList"`
+	DelayMs        int      `yaml:"delayMs"`
 }

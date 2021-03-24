@@ -97,7 +97,7 @@ func main() {
 				if err != nil {
 					panic(err)
 				}
-				log.Printf("[%s] %d rows were returned.\n", keyName, len(rowList))
+				log.Printf("[%s] %d rows ware returned.\n", keyName, len(rowList))
 
 				for _, rowMap := range rowList {
 
@@ -141,7 +141,8 @@ func main() {
 					} else {
 						log.Printf("[%s] message sent to partition %d at offset %d\n", keyName, partition, offset)
 					}
-					time.Sleep(time.Millisecond * 50)
+
+					time.Sleep(time.Duration(config.DelayMs) * time.Millisecond)
 				}
 
 				sql2 := fmt.Sprintf("UPDATE dbo.history SET sync02=2 WHERE sync02=1 AND sn='%s' AND ts >= '%s'", keyName, config.StartTime)
@@ -153,7 +154,7 @@ func main() {
 				if err != nil {
 					panic(err)
 				}
-				log.Printf("[%s] sent %s rows.\n", rowaffected)
+				log.Printf("[%s] %d rows were sent.\n", keyName, rowaffected)
 
 			}(assetName)
 		}
