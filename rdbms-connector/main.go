@@ -114,21 +114,32 @@ func main() {
 						valueMap[k] = v
 					}
 
-					if t, ok := rowMap["ts"].(time.Time); ok {
-						valueMap["event_time"] = t.UTC().Format(time.RFC3339)
+					if t1, ok := rowMap["ts"].(time.Time); ok {
+						loc, _ := time.LoadLocation(config.Location)
+						//set timezone,
+						t2 := t1.In(loc)
+						z, _ := t2.Zone()
+						t3 := t2.UTC()
+
+						if config.LogMessage {
+							log.Printf("[%s] ZONE : %s, Time : %s, UTC: %s\n", keyName, z, t2, t3)
+						}
+						valueMap["event_time"] = t3.Format(time.RFC3339)
 					} else {
 						//valueMap["event_time"] = time.Now().UTC().Format(time.RFC3339) // 2019-01-12T01:02:03Z
 					}
 
-					valueMap["assetName"] = keyName
-					valueMap["sensorId"] = config.SensorName
-					valueMap["sensorName"] = config.SensorName
+					valueMap["assetId"] = keyName
+					valueMap["sensorId"] = keyName
+					valueMap["sensorName"] = keyName
 					valueMap["sensorType"] = config.SensorType
 
 					mapString, _ := json.Marshal(valueMap)
 					message := string(mapString)
 
-					log.Printf("[%s] message: %s\n", keyName, message)
+					if config.LogMessage {
+						log.Printf("[%s] message: %s\n", keyName, message)
+					}
 
 					msg := &sarama.ProducerMessage{
 						Topic: config.Topic,
