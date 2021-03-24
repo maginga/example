@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"example/rdbms-connector/rdb"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
@@ -24,7 +25,7 @@ func main() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
 	signalChan := make(chan os.Signal, 1)
-	signal.Notify(signalChan, syscall.SIGHUP, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGUSR1)
+	signal.Notify(signalChan, os.Interrupt, syscall.SIGHUP, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGUSR1)
 
 	filename, _ := filepath.Abs("./config.yaml")
 	yamlFile, err := ioutil.ReadFile(filename)
@@ -65,7 +66,8 @@ func main() {
 		for _, assetName := range config.AssetList {
 
 			go func(keyName string) {
-				r1, err := db.Exec("UPDATE dbo.history SET sync02=? WHEREb sync02=? AND sn=?", 1, 0, keyName)
+				sql1 := fmt.Sprintf("UPDATE dbo.history SET sync02=1 WHERE sync02=0 AND sn='%s' AND ts >= '%s'", keyName, config.StartTime)
+				r1, err := db.Exec(sql1)
 				if err != nil {
 					log.Fatal(err)
 				}
@@ -73,7 +75,7 @@ func main() {
 				if err != nil {
 					panic(err)
 				}
-				log.Printf("[%s] %s rows were selected.\n", n, keyName)
+				log.Printf("[%s] %d rows were selected.\n", keyName, n)
 
 				sqlStatement, err := rdb.NewSQLStatement(dbHelper, config.Query)
 				if err != nil {
@@ -95,23 +97,38 @@ func main() {
 				if err != nil {
 					panic(err)
 				}
-				log.Printf("[%s] %s rows were returned.\n", n, keyName)
+				log.Printf("[%s] %d rows were returned.\n", keyName, len(rowList))
 
 				for _, rowMap := range rowList {
 
-					if t, ok := rowMap["ts"].(time.Time); ok {
-						rowMap["event_time"] = t.UTC().Format(time.RFC3339)
-					} else {
-						//rowMap["event_time"] = time.Now().UTC().Format(time.RFC3339) // 2019-01-12T01:02:03Z
+					valueMap := make(map[string]interface{})
+					for k, v := range rowMap {
+						if k == "ts" || k == "sn" || k == "sync01" || k == "sync02" || k == "sync03" || k == "id" || k == "ip" {
+							continue
+						}
+
+						if v == nil {
+							continue
+						}
+
+						valueMap[k] = v
 					}
 
-					rowMap["assetName"] = keyName
-					rowMap["sensorId"] = config.SensorName
-					rowMap["sensorName"] = config.SensorName
-					rowMap["sensorType"] = config.SensorType
+					if t, ok := rowMap["ts"].(time.Time); ok {
+						valueMap["event_time"] = t.UTC().Format(time.RFC3339)
+					} else {
+						//valueMap["event_time"] = time.Now().UTC().Format(time.RFC3339) // 2019-01-12T01:02:03Z
+					}
 
-					mapString, _ := json.Marshal(rowMap)
+					valueMap["assetName"] = keyName
+					valueMap["sensorId"] = config.SensorName
+					valueMap["sensorName"] = config.SensorName
+					valueMap["sensorType"] = config.SensorType
+
+					mapString, _ := json.Marshal(valueMap)
 					message := string(mapString)
+
+					log.Printf("[%s] message: %s\n", keyName, message)
 
 					msg := &sarama.ProducerMessage{
 						Topic: config.Topic,
@@ -122,13 +139,13 @@ func main() {
 					if err != nil {
 						log.Printf("[%s] FAILED to send message: %s\n", keyName, err)
 					} else {
-						log.Printf("[%s] message: %s\n", keyName, message)
 						log.Printf("[%s] message sent to partition %d at offset %d\n", keyName, partition, offset)
 					}
 					time.Sleep(time.Millisecond * 50)
 				}
 
-				r2, err := db.Exec("UPDATE dbo.history SET sync02=? WHERE sync02=? AND sn=?", 2, 1, keyName)
+				sql2 := fmt.Sprintf("UPDATE dbo.history SET sync02=2 WHERE sync02=1 AND sn='%s' AND ts >= '%s'", keyName, config.StartTime)
+				r2, err := db.Exec(sql2)
 				if err != nil {
 					log.Fatal(err)
 				}
@@ -162,7 +179,10 @@ func main() {
 	for {
 		signal := <-signalChan
 		switch signal {
-		case syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM:
+		case os.Interrupt, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM:
+			fmt.Printf("signal:%d\n", signal)
+			fmt.Printf("shutdown now.")
+			os.Exit(1)
 			break
 		default:
 			//fmt.Printf("Unknown signal(%d)\n", signal)
@@ -220,6 +240,10 @@ func getLabeledResults(dbHelper rdb.DbHelper, rows *sql.Rows) ([]map[string]inte
 			case *interface{}:
 				resMap[column] = *(v)
 			case *string:
+				resMap[column] = *(v)
+			case *int:
+				resMap[column] = *(v)
+			case *float32:
 				resMap[column] = *(v)
 			default:
 				log.Printf("type unknown\n")
