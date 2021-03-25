@@ -65,45 +65,47 @@ func main() {
 		// DB is safe to be used by multiple goroutines
 		for _, assetName := range config.AssetList {
 
-			go func(keyName string) {
-				sql1 := fmt.Sprintf("UPDATE dbo.history SET sync02=1 WHERE sync02=0 AND sn='%s' AND ts >= '%s'", keyName, config.StartTime)
-				r1, err := db.Exec(sql1)
-				if err != nil {
-					log.Fatal(err)
-				}
-				n, err := r1.RowsAffected()
-				if err != nil {
-					panic(err)
-				}
-				log.Printf("[%s] %d rows were selected.\n", keyName, n)
+			sql1 := fmt.Sprintf("UPDATE dbo.history SET sync02=1 WHERE sync02=0 AND sn='%s' AND ts >= '%s'", assetName, config.StartTime)
+			r1, err := db.Exec(sql1)
+			if err != nil {
+				log.Fatal(err)
+			}
+			n, err := r1.RowsAffected()
+			if err != nil {
+				panic(err)
+			}
+			if n <= 0 {
+				return
+			}
+			log.Printf("[%s] %d rows were selected.\n", assetName, n)
 
-				sqlStatement, err := rdb.NewSQLStatement(dbHelper, config.Query)
-				if err != nil {
-					panic(err)
-				}
+			sqlStatement, err := rdb.NewSQLStatement(dbHelper, config.Query)
+			if err != nil {
+				panic(err)
+			}
 
-				params := make(map[string]interface{})
-				params["status"] = 1
-				params["assetName"] = keyName
-				params["startTime"] = config.StartTime
+			params := make(map[string]interface{})
+			params["status"] = 1
+			params["assetName"] = assetName
+			params["startTime"] = config.StartTime
 
-				rows, err := db.Query(sqlStatement.ToStatementSQL(params))
-				if err != nil {
-					panic(err)
-				}
-				defer rows.Close()
+			rows, err := db.Query(sqlStatement.ToStatementSQL(params))
+			if err != nil {
+				panic(err)
+			}
+			defer rows.Close()
 
-				rowList, err := getLabeledResults(dbHelper, rows)
-				if err != nil {
-					panic(err)
-				}
-				log.Printf("[%s] %d rows ware returned.\n", keyName, len(rowList))
+			rowList, err := getLabeledResults(dbHelper, rows)
+			if err != nil {
+				panic(err)
+			}
+			log.Printf("[%s] %d rows ware returned.\n", assetName, len(rowList))
 
-				for _, rowMap := range rowList {
-
+			go func(keyName string, rows []map[string]interface{}) {
+				for _, rowMap := range rows {
 					valueMap := make(map[string]interface{})
 					for k, v := range rowMap {
-						if k == "ts" || k == "sn" || k == "sync01" || k == "sync02" || k == "sync03" || k == "id" || k == "ip" {
+						if k == "ts" || k == "tz" || k == "sn" || k == "sync01" || k == "sync02" || k == "sync03" || k == "id" || k == "ip" {
 							continue
 						}
 
@@ -114,17 +116,14 @@ func main() {
 						valueMap[k] = v
 					}
 
-					if t1, ok := rowMap["ts"].(time.Time); ok {
-						loc, _ := time.LoadLocation(config.Location)
-						//set timezone,
-						t2 := t1.In(loc)
-						z, _ := t2.Zone()
-						t3 := t2.UTC()
+					if t1, ok := rowMap["tz"].(time.Time); ok {
+						z, _ := t1.Zone()
+						t2 := t1.UTC()
 
 						if config.LogMessage {
-							log.Printf("[%s] ZONE : %s, Time : %s, UTC: %s\n", keyName, z, t2, t3)
+							log.Printf("[%s] ZONE : %s, Local : %s, UTC: %s\n", keyName, z, t1, t2)
 						}
-						valueMap["event_time"] = t3.Format(time.RFC3339)
+						valueMap["event_time"] = t2.Format(time.RFC3339)
 					} else {
 						//valueMap["event_time"] = time.Now().UTC().Format(time.RFC3339) // 2019-01-12T01:02:03Z
 					}
@@ -147,27 +146,30 @@ func main() {
 					}
 
 					partition, offset, err := producer.SendMessage(msg)
-					if err != nil {
-						log.Printf("[%s] FAILED to send message: %s\n", keyName, err)
-					} else {
-						log.Printf("[%s] message sent to partition %d at offset %d\n", keyName, partition, offset)
+
+					if config.LogMessage {
+						if err != nil {
+							log.Printf("[%s] FAILED to send message: %s\n", keyName, err)
+						} else {
+							log.Printf("[%s] message sent to partition %d at offset %d\n", keyName, partition, offset)
+						}
 					}
 
 					time.Sleep(time.Duration(config.DelayMs) * time.Millisecond)
 				}
+			}(assetName, rowList)
 
-				sql2 := fmt.Sprintf("UPDATE dbo.history SET sync02=2 WHERE sync02=1 AND sn='%s' AND ts >= '%s'", keyName, config.StartTime)
-				r2, err := db.Exec(sql2)
-				if err != nil {
-					log.Fatal(err)
-				}
-				rowaffected, err := r2.RowsAffected()
-				if err != nil {
-					panic(err)
-				}
-				log.Printf("[%s] %d rows were sent.\n", keyName, rowaffected)
+			sql2 := fmt.Sprintf("UPDATE dbo.history SET sync02=2 WHERE sync02=1 AND sn='%s' AND ts >= '%s'", assetName, config.StartTime)
+			r2, err := db.Exec(sql2)
+			if err != nil {
+				log.Fatal(err)
+			}
+			rowaffected, err := r2.RowsAffected()
+			if err != nil {
+				panic(err)
+			}
+			log.Printf("[%s] %d rows were sent.\n", assetName, rowaffected)
 
-			}(assetName)
 		}
 	}
 
