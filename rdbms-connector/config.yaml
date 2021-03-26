@@ -8,4 +8,4 @@ sensorType: Pump
 assetList: ["AP0000001"]
 delayMs: 500
 logMessage: false
-location: Europe/Paris
+assetColName: sn

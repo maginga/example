@@ -76,8 +76,9 @@ func main() {
 				go func(asset string, valueMap map[string]interface{}) {
 
 					valueMap["assetId"] = asset
-					valueMap["sensorType"] = "Vibration"
+					valueMap["sensorType"] = "Pump"
 					valueMap["sensorName"] = asset
+					valueMap["sensorId"] = asset
 
 					mapString, _ := json.Marshal(valueMap)
 					message := string(mapString)
@@ -86,6 +87,8 @@ func main() {
 						Topic: config.Topic,
 						Value: sarama.StringEncoder(message),
 					}
+
+					log.Printf("[%s] msg: %s\n", asset, message)
 
 					partition, offset, err := producer.SendMessage(msg)
 					if err != nil {
@@ -96,7 +99,7 @@ func main() {
 				}(assetName, targetMap)
 			}
 
-			time.Sleep(time.Second * 60)
+			time.Sleep(time.Second * 1)
 		}
 	}
 }

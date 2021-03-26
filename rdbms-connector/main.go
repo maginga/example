@@ -11,6 +11,7 @@ import (
 	"os/signal"
 	"path/filepath"
 	"runtime"
+	"sync"
 	"syscall"
 	"time"
 
@@ -20,6 +21,8 @@ import (
 	"github.com/carlescere/scheduler"
 	"gopkg.in/yaml.v2"
 )
+
+var watermark string
 
 func main() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
@@ -34,6 +37,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	watermark := config.StartTime
 
 	producer, err := newProducer(config.BrokerUrl)
 	if err != nil {
@@ -62,10 +66,12 @@ func main() {
 	}
 
 	job := func() {
+		var wg sync.WaitGroup
+
 		// DB is safe to be used by multiple goroutines
 		for _, assetName := range config.AssetList {
 
-			sql1 := fmt.Sprintf("UPDATE dbo.history SET sync02=1 WHERE sync02=0 AND sn='%s' AND ts >= '%s'", assetName, config.StartTime)
+			sql1 := fmt.Sprintf("UPDATE dbo.history SET sync02=1 WHERE sync02=0 AND sn='%s' AND ts >= '%s'", assetName, watermark)
 			r1, err := db.Exec(sql1)
 			if err != nil {
 				log.Fatal(err)
@@ -74,10 +80,13 @@ func main() {
 			if err != nil {
 				panic(err)
 			}
+			log.Printf("[%s] [%d] rows, sql: %s\n", assetName, n, sql1)
+			//log.Printf("[%s] %d rows were selected.\n", assetName, n)
+
 			if n <= 0 {
-				return
+				continue
 			}
-			log.Printf("[%s] %d rows were selected.\n", assetName, n)
+			wg.Add(1)
 
 			sqlStatement, err := rdb.NewSQLStatement(dbHelper, config.Query)
 			if err != nil {
@@ -87,9 +96,10 @@ func main() {
 			params := make(map[string]interface{})
 			params["status"] = 1
 			params["assetName"] = assetName
-			params["startTime"] = config.StartTime
+			params["startTime"] = watermark
 
-			rows, err := db.Query(sqlStatement.ToStatementSQL(params))
+			selQuery := sqlStatement.ToStatementSQL(params)
+			rows, err := db.Query(selQuery)
 			if err != nil {
 				panic(err)
 			}
@@ -99,9 +109,12 @@ func main() {
 			if err != nil {
 				panic(err)
 			}
-			log.Printf("[%s] %d rows ware returned.\n", assetName, len(rowList))
+			log.Printf("[%s] [%d] rows, sql: %s\n", assetName, len(rowList), selQuery)
+			//log.Printf("[%s] %d rows ware returned.\n", assetName, len(rowList))
 
 			go func(keyName string, rows []map[string]interface{}) {
+				defer wg.Done()
+
 				for _, rowMap := range rows {
 					valueMap := make(map[string]interface{})
 					for k, v := range rowMap {
@@ -117,12 +130,7 @@ func main() {
 					}
 
 					if t1, ok := rowMap["tz"].(time.Time); ok {
-						z, _ := t1.Zone()
 						t2 := t1.UTC()
-
-						if config.LogMessage {
-							log.Printf("[%s] ZONE : %s, Local : %s, UTC: %s\n", keyName, z, t1, t2)
-						}
 						valueMap["event_time"] = t2.Format(time.RFC3339)
 					} else {
 						//valueMap["event_time"] = time.Now().UTC().Format(time.RFC3339) // 2019-01-12T01:02:03Z
@@ -159,7 +167,7 @@ func main() {
 				}
 			}(assetName, rowList)
 
-			sql2 := fmt.Sprintf("UPDATE dbo.history SET sync02=2 WHERE sync02=1 AND sn='%s' AND ts >= '%s'", assetName, config.StartTime)
+			sql2 := fmt.Sprintf("UPDATE dbo.history SET sync02=2 WHERE sync02=1 AND sn='%s' AND ts >= '%s'", assetName, watermark)
 			r2, err := db.Exec(sql2)
 			if err != nil {
 				log.Fatal(err)
@@ -168,9 +176,13 @@ func main() {
 			if err != nil {
 				panic(err)
 			}
-			log.Printf("[%s] %d rows were sent.\n", assetName, rowaffected)
 
+			log.Printf("[%s] [%d] rows, sql: %s\n", assetName, rowaffected, sql2)
+			//log.Printf("[%s] %d rows were sent.\n", assetName, rowaffected)
+			time.Sleep(100 * time.Millisecond)
 		}
+
+		wg.Wait()
 	}
 
 	d, err := time.ParseDuration(config.RepeatInterval)

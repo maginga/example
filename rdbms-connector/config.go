@@ -11,5 +11,5 @@ type Config struct {
 	AssetList      []string `yaml:"assetList"`
 	DelayMs        int      `yaml:"delayMs"`
 	LogMessage     bool     `yaml:"logMessage"`
-	Location       string   `yaml:"location"`
+	AssetColName   string   `yaml:"assetColName"`
 }
