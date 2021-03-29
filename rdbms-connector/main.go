@@ -118,10 +118,12 @@ func main() {
 				for _, rowMap := range rows {
 					valueMap := make(map[string]interface{})
 					for k, v := range rowMap {
+						//Exclude unnecessary columns.
 						if k == "ts" || k == "tz" || k == "sn" || k == "sync01" || k == "sync02" || k == "sync03" || k == "id" || k == "ip" {
 							continue
 						}
 
+						//Exclude null values.
 						if v == nil {
 							continue
 						}
