@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
 	"example/rdbms-connector/rdb"
@@ -70,27 +71,38 @@ func main() {
 
 		// DB is safe to be used by multiple goroutines
 		for _, assetName := range config.AssetList {
-
-			sql1 := fmt.Sprintf("UPDATE dbo.history SET sync02=1 WHERE sync02=0 AND sn='%s' AND ts >= '%s'", assetName, watermark)
-			r1, err := db.Exec(sql1)
+			// begin transaction
+			ctx := context.Background()
+			tx, err := db.BeginTx(ctx, nil)
 			if err != nil {
 				log.Fatal(err)
 			}
-			n, err := r1.RowsAffected()
+
+			sql1 := fmt.Sprintf("UPDATE dbo.history SET sync02=1 WHERE sync02=0 AND sn='%s' AND ts >= '%s'", assetName, watermark)
+			r1, err := tx.ExecContext(ctx, sql1)
 			if err != nil {
-				panic(err)
+				tx.Rollback()
+				return
 			}
+			n, _ := r1.RowsAffected()
+
 			log.Printf("[%s] [%d] rows, sql: %s\n", assetName, n, sql1)
-			//log.Printf("[%s] %d rows were selected.\n", assetName, n)
 
 			if n <= 0 {
+				err = tx.Commit()
+				if err != nil {
+					log.Println(err)
+				}
+
+				time.Sleep(10 * time.Millisecond)
 				continue
 			}
 			wg.Add(1)
 
 			sqlStatement, err := rdb.NewSQLStatement(dbHelper, config.Query)
 			if err != nil {
-				panic(err)
+				tx.Rollback()
+				return
 			}
 
 			params := make(map[string]interface{})
@@ -99,21 +111,25 @@ func main() {
 			params["startTime"] = watermark
 
 			selQuery := sqlStatement.ToStatementSQL(params)
-			rows, err := db.Query(selQuery)
+			rows, err := tx.Query(selQuery)
 			if err != nil {
-				panic(err)
+				tx.Rollback()
+				return
 			}
 			defer rows.Close()
 
 			rowList, err := getLabeledResults(dbHelper, rows)
 			if err != nil {
-				panic(err)
+				tx.Rollback()
+				return
 			}
 			log.Printf("[%s] [%d] rows, sql: %s\n", assetName, len(rowList), selQuery)
-			//log.Printf("[%s] %d rows ware returned.\n", assetName, len(rowList))
 
 			go func(keyName string, rows []map[string]interface{}) {
 				defer wg.Done()
+
+				totalRowCnt := len(rows)
+				rowIndex := 0
 
 				for _, rowMap := range rows {
 					valueMap := make(map[string]interface{})
@@ -131,7 +147,8 @@ func main() {
 						valueMap[k] = v
 					}
 
-					if t1, ok := rowMap["tz"].(time.Time); ok {
+					t1, ok := rowMap["tz"].(time.Time)
+					if ok {
 						t2 := t1.UTC()
 						valueMap["event_time"] = t2.Format(time.RFC3339)
 					} else {
@@ -157,12 +174,12 @@ func main() {
 
 					partition, offset, err := producer.SendMessage(msg)
 
-					if config.LogMessage {
-						if err != nil {
-							log.Printf("[%s] FAILED to send message: %s\n", keyName, err)
-						} else {
-							log.Printf("[%s] message sent to partition %d at offset %d\n", keyName, partition, offset)
-						}
+					rowIndex++
+					if err != nil {
+						log.Printf("[%s] FAILED to send message: %s\n", keyName, err)
+					} else {
+						log.Printf("[%s] sent (partition: %d,  offset: %d) - (origin: %s, utc: %s) - (%d/%d)\n",
+							keyName, partition, offset, t1.Format(time.RFC3339), valueMap["event_time"], rowIndex, totalRowCnt)
 					}
 
 					time.Sleep(time.Duration(config.DelayMs) * time.Millisecond)
@@ -170,18 +187,19 @@ func main() {
 			}(assetName, rowList)
 
 			sql2 := fmt.Sprintf("UPDATE dbo.history SET sync02=2 WHERE sync02=1 AND sn='%s' AND ts >= '%s'", assetName, watermark)
-			r2, err := db.Exec(sql2)
+			r2, err := tx.ExecContext(ctx, sql2)
 			if err != nil {
-				log.Fatal(err)
+				tx.Rollback()
+				return
 			}
-			rowaffected, err := r2.RowsAffected()
-			if err != nil {
-				panic(err)
-			}
-
+			rowaffected, _ := r2.RowsAffected()
 			log.Printf("[%s] [%d] rows, sql: %s\n", assetName, rowaffected, sql2)
-			//log.Printf("[%s] %d rows were sent.\n", assetName, rowaffected)
-			time.Sleep(100 * time.Millisecond)
+
+			// Commit the change if all queries ran successfully
+			err = tx.Commit()
+			if err != nil {
+				log.Println(err)
+			}
 		}
 
 		wg.Wait()
@@ -209,7 +227,6 @@ func main() {
 		switch signal {
 		case os.Interrupt, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM:
 			fmt.Printf("signal:%d\n", signal)
-			fmt.Printf("shutdown now.")
 			os.Exit(1)
 			break
 		default:
