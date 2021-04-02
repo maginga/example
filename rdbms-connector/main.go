@@ -86,17 +86,17 @@ func main() {
 			}
 			n, _ := r1.RowsAffected()
 
-			log.Printf("[%s] [%d] rows, sql: %s\n", assetName, n, sql1)
-
 			if n <= 0 {
 				err = tx.Commit()
 				if err != nil {
 					log.Println(err)
 				}
-
-				time.Sleep(10 * time.Millisecond)
+				log.Printf("[%s] [%d] rows, skipped.\n", assetName, n)
 				continue
+			} else {
+				log.Printf("[%s] [%d] rows, sql: %s\n", assetName, n, sql1)
 			}
+
 			wg.Add(1)
 
 			sqlStatement, err := rdb.NewSQLStatement(dbHelper, config.Query)
