@@ -6,11 +6,10 @@ type Config struct {
 	BrokerUrl      []string `yaml:"brokerUrl"`
 	Topic          string   `yaml:"topic"`
 	Query          string   `yaml:"query"`
-	ChunkSizeMin   int      `yaml:"chunkSizeMin"`
 	StartTime      string   `yaml:"startTime"`
 	SensorType     string   `yaml:"sensorType"`
 	AssetList      []string `yaml:"assetList"`
 	DelayMs        int      `yaml:"delayMs"`
-	LogMessage     bool     `yaml:"logMessage"`
+	Debug          bool     `yaml:"debug"`
 	AssetColName   string   `yaml:"assetColName"`
 }

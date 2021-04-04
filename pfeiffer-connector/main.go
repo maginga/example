@@ -11,7 +11,6 @@ import (
 	"os/signal"
 	"path/filepath"
 	"runtime"
-	"strings"
 	"sync"
 	"syscall"
 	"time"
@@ -23,7 +22,15 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-var watermark sync.Map
+var baseTime string
+
+func loadConfig() (Config, error) {
+	filename, _ := filepath.Abs("./config.yaml")
+	yamlFile, err := ioutil.ReadFile(filename)
+	var config Config
+	err = yaml.Unmarshal(yamlFile, &config)
+	return config, err
+}
 
 func main() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
@@ -31,17 +38,9 @@ func main() {
 	signalChan := make(chan os.Signal, 1)
 	signal.Notify(signalChan, os.Interrupt, syscall.SIGHUP, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGTERM)
 
-	filename, _ := filepath.Abs("./config.yaml")
-	yamlFile, err := ioutil.ReadFile(filename)
-	var config Config
-	err = yaml.Unmarshal(yamlFile, &config)
+	config, err := loadConfig()
 	if err != nil {
 		panic(err)
-	}
-
-	watermark := sync.Map{}
-	for _, name := range config.AssetList {
-		watermark.Store(name, config.StartTime)
 	}
 
 	producer, err := newProducer(config.BrokerUrl)
@@ -70,10 +69,20 @@ func main() {
 		panic(err)
 	}
 
+	baseTime := config.StartTime
+
 	job := func() {
-		log.Println("job started.")
+		log.Printf("job started. (base: %s, assets: %d)\n", baseTime, len(config.AssetList))
+
+		sql1 := fmt.Sprintf("UPDATE dbo.history SET sync02=1 WHERE sync02=0 AND ts >= '%s'", baseTime)
+		r1, err := db.Exec(sql1)
+		if err != nil {
+			log.Panic(err)
+		}
+		rowAffected1, _ := r1.RowsAffected()
+		log.Printf("[%d] rows are changed. (state: 0 => 1)\n", rowAffected1)
+
 		wg := sync.WaitGroup{}
-		ch := make(chan string, len(config.AssetList))
 
 		// DB is safe to be used by multiple goroutines
 		for _, assetName := range config.AssetList {
@@ -82,35 +91,25 @@ func main() {
 			go func(assetName string) {
 				defer wg.Done()
 
-				fromTime, _ := watermark.Load(assetName)
-				ft, _ := time.Parse("2006-01-02 15:04:05", fromTime.(string))
-				tt := ft.Add(time.Duration(config.ChunkSizeMin) * time.Minute)
-				toTime := tt.Format("2006-01-02 15:04:05")
-
 				sqlStatement, err := rdb.NewSQLStatement(dbHelper, config.Query)
 				if err != nil {
-					log.Printf("[%s] %v\n", assetName, err)
-					return
+					log.Panic(err)
 				}
 				params := make(map[string]interface{})
-				params["status"] = 0
+				params["status"] = 1
 				params["assetName"] = assetName
-				params["fromTime"] = fromTime
-				params["toTime"] = toTime
+				params["startTime"] = baseTime
 
 				selQuery := sqlStatement.ToStatementSQL(params)
 				rows, err := db.Query(selQuery)
 				if err != nil {
-					log.Printf("[%s] %v\n", assetName, err)
-					return
+					log.Panic(err)
 				}
 				defer rows.Close()
-				log.Printf("[%s] - rows are selected. (from: %s, to: %s)\n", assetName, fromTime, toTime)
 
 				columns, err := rows.Columns()
 				if err != nil {
-					log.Printf("[%s] %v\n", assetName, err)
-					return
+					log.Panic(err)
 				}
 
 				columnTypes, err := rows.ColumnTypes()
@@ -170,7 +169,7 @@ func main() {
 					mapString, _ := json.Marshal(valueMap)
 					message := string(mapString)
 
-					if config.LogMessage {
+					if config.Debug {
 						log.Printf("[%s] message: %s\n", assetName, message)
 					}
 
@@ -185,41 +184,39 @@ func main() {
 					if err != nil {
 						log.Printf("[%s] FAILED to send message: %s\n", assetName, err)
 					} else {
-						log.Printf("[%s] sent (partition: %d,  offset: %d) - row: %d, (origin: %s, utc: %s)\n",
-							assetName, partition, offset, rowIndex, lastTime.Format(time.RFC3339), valueMap["event_time"])
+						if config.Debug {
+							log.Printf("[%s] sent (partition: %d,  offset: %d) - row: %d, (origin: %s, utc: %s)\n",
+								assetName, partition, offset, rowIndex, lastTime.Format(time.RFC3339), valueMap["event_time"])
+						}
 					}
 					time.Sleep(time.Duration(config.DelayMs) * time.Millisecond)
 				}
 
+				log.Printf("[%s] - [%d] rows sent. (last: %s)\n", assetName, rowIndex, lastTime.Format(time.RFC3339))
 				if rowIndex <= 0 {
 					return
 				}
 
-				resp := []string{assetName, fromTime.(string), toTime, lastTime.Format("2006-01-02 15:04:05")}
-				ch <- strings.Join(resp, ",")
-
 			}(assetName)
 		}
 		wg.Wait()
-		close(ch)
 
-		for chValue := range ch {
-			values := strings.Split(chValue, ",")
-			assetName := values[0]
-			fromTime := values[1]
-			toTime := values[2]
-			lastTime := values[3]
-
-			sql := fmt.Sprintf("UPDATE dbo.history SET sync02=2 WHERE sync02=0 AND sn='%s' AND ts >= '%s' AND ts < '%s'", assetName, fromTime, toTime)
-			r, err := db.Exec(sql)
-			if err != nil {
-				log.Panic(err)
-			}
-			rowAffected, _ := r.RowsAffected()
-			log.Printf("[%s] - [%d] rows are updated. (sync02: 2, from: %s, to: %s)\n", assetName, rowAffected, fromTime, toTime)
-
-			watermark.Store(assetName, lastTime)
+		sql2 := fmt.Sprintf("UPDATE dbo.history SET sync02=2 WHERE sync02=1 AND ts >= '%s'", baseTime)
+		r2, err := db.Exec(sql2)
+		if err != nil {
+			log.Panic(err)
 		}
+		rowAffected2, _ := r2.RowsAffected()
+		log.Printf("[%d] rows are changed. (state: 1 => 2)\n", rowAffected2)
+
+		// change the base time
+		bt, _ := time.Parse("2006-01-02 15:04:05", baseTime)
+		days := bt.Sub(time.Now()).Hours() / 24
+		if days > 7 {
+			baseTime = bt.AddDate(0, 0, 5).Format("2006-01-02 15:04:05")
+			log.Printf("base time changed. (before: %s, after: %s)\n", bt.Format("2006-01-02 15:04:05"), baseTime)
+		}
+
 		log.Println("job finished.")
 	}
 
@@ -247,8 +244,6 @@ func main() {
 			fmt.Printf("signal:%d\n", signal)
 			os.Exit(1)
 			break
-		default:
-			//fmt.Printf("Unknown signal(%d)\n", signal)
 		}
 	}
 }
