@@ -211,8 +211,8 @@ func main() {
 
 		// change the base time
 		bt, _ := time.Parse("2006-01-02 15:04:05", baseTime)
-		days := bt.Sub(time.Now()).Hours() / 24
-		if days > 7 {
+		days := time.Now().Sub(bt).Hours() / 24
+		if days > 7.0 {
 			baseTime = bt.AddDate(0, 0, 5).Format("2006-01-02 15:04:05")
 			log.Printf("base time changed. (before: %s, after: %s)\n", bt.Format("2006-01-02 15:04:05"), baseTime)
 		}
