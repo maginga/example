@@ -2,9 +2,9 @@ sudo docker run -d \
     --name=mqtt_broker \
     -p 1883:1883 \
     -p 9001:9001 \
-    -v /home/grandview/mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf \
-    -v /home/grandview/mosquitto/mosquitto/data \
-    -v /home/grandview/mosquitto/mosquitto/log \
+    -v /datadrive/mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf \
+    -v /datadrive/mosquitto/data \
+    -v /datadrive/mosquitto/log \
     eclipse-mosquitto
 
 sudo docker run -d \
