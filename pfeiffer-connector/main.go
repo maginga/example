@@ -35,9 +35,6 @@ func loadConfig() (Config, error) {
 func main() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
-	signalChan := make(chan os.Signal, 1)
-	signal.Notify(signalChan, os.Interrupt, syscall.SIGHUP, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGTERM)
-
 	config, err := loadConfig()
 	if err != nil {
 		panic(err)
@@ -234,18 +231,8 @@ func main() {
 		log.Printf("Error scheduling repeating timer: ", err.Error())
 	}
 
-	// Keep the program from not exiting.
-	//runtime.Goexit()
-
-	for {
-		signal := <-signalChan
-		switch signal {
-		case os.Interrupt, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM:
-			fmt.Printf("signal:%d\n", signal)
-			os.Exit(1)
-			break
-		}
-	}
+	// Wait for SIGTERM
+	waitForShutdown()
 }
 
 func newProducer(brokers []string) (sarama.SyncProducer, error) {
@@ -256,4 +243,14 @@ func newProducer(brokers []string) (sarama.SyncProducer, error) {
 	// The level of acknowledgement reliability needed from the broker.
 	return sarama.NewSyncProducer(brokers, config)
 	// producer, err := sarama.NewAsyncProducer(brokers, config)
+}
+
+// waitForShutdown blocks until a SIGINT or SIGTERM is received.
+func waitForShutdown() {
+	quit := make(chan os.Signal)
+
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	defer signal.Stop(quit)
+
+	<-quit
 }
