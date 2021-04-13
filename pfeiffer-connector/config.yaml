@@ -2,10 +2,11 @@ connString: server=192.168.250.1;user id=icsuser;password=Adixen74;database=ICS
 repeatInterval: 1m
 brokerUrl: ["10.100.60.40:9092"]
 topic: apm-trace-default-nest-01
-query: "SELECT ts AT TIME ZONE 'Central European Standard Time' AS tz, * FROM dbo.history WHERE sync02 = :status AND sn = :assetName AND ts >= :startTime order by ts asc"
+query: "SELECT ts AT TIME ZONE 'Central European Standard Time' AS tz, * FROM dbo.history WHERE sync02 = :status AND ip = :ip AND ts >= :startTime order by ts asc"
 startTime: "2021-03-23 12:00:00"
 sensorType: Pump
+ipAddress: ["100.141"]
 assetList: ["AP0000001"]
 delayMs: 200
 debug: false
-assetColName: sn
+timezone: Europe/Paris
