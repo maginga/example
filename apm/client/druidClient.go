@@ -460,10 +460,10 @@ func (c *DruidClient) CreateTrace(nestID string) (string, error) {
 	}
 	defer db.Close()
 
-	var logicalType string
+	//var logicalType string
 	var dataType string
 	var physicalName string
-	rows, err := db.Query(`SELECT p.logical_type, p.data_type, p.physical_name 
+	rows, err := db.Query(`SELECT p.data_type, p.physical_name 
 	FROM nest n, nest_egg g, sensor s, sensor_param_group_join j, parameter p
 	WHERE n.id=g.nest_id
 	and n.id=?
@@ -476,10 +476,10 @@ func (c *DruidClient) CreateTrace(nestID string) (string, error) {
 	}
 	defer rows.Close()
 
-	seq := 4
+	seq := 5
 	var columns []string
 	for rows.Next() {
-		err := rows.Scan(&logicalType, &dataType, &physicalName)
+		err := rows.Scan(&dataType, &physicalName)
 		if err != nil {
 			panic(err)
 		}
@@ -550,6 +550,12 @@ func (c *DruidClient) CreateTrace(nestID string) (string, error) {
 			"type": "STRING",
 			"role": "DIMENSION",
 			"seq": 3
+		  },
+		  {
+			"name": "context",
+			"type": "STRING",
+			"role": "DIMENSION",
+			"seq": 4
 		  },` + columnJSON + `
 		]
 	  }`
