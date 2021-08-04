@@ -1,0 +1,8 @@
+mqttUrl: mqtt://1.227.57.86:1883/
+subscribeTopic: test
+kafkaUrl: ["1.227.57.86:9092"]
+produceTopic: apm-trace-default-nest-01
+assetId: "Robot01"
+sensorType: "Laser"
+sensorId: "L01"
+windowSize: 10

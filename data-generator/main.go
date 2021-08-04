@@ -57,7 +57,7 @@ func main() {
 					eventTime := time.Now().UTC().Format(time.RFC3339) // 2019-01-12T01:02:03Z
 					val := strings.Replace(msg, "$1", eventTime, 1)
 					val = strings.Replace(val, "$2", strconv.Itoa(i), 2)
-					val = strings.Replace(val, "$3", strconv.Itoa(i), 2)
+					//val = strings.Replace(val, "$3", strconv.Itoa(i), 2)
 
 					log.Println("message: ", val)
 					msg := &sarama.ProducerMessage{
@@ -111,7 +111,7 @@ func mapTo(f string) []string {
 		valueMap["event_time"] = "$1"
 		valueMap["assetId"] = "Pump$2"
 		valueMap["sensorId"] = "S$2"
-		valueMap["sensorName"] = "S$3"
+		//valueMap["sensorName"] = "S$3"
 		valueMap["sensorType"] = "Vibration"
 
 		for j, val := range row {

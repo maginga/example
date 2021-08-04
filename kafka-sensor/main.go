@@ -5,6 +5,7 @@ import (
 	"encoding/csv"
 	"encoding/json"
 	"io/ioutil"
+
 	"log"
 	"os"
 	"path/filepath"
@@ -46,6 +47,7 @@ func main() {
 	rows, _ := reader.ReadAll()
 
 	header := make([]string, 0)
+	//contextMap := make(map[string]string)
 	valueMap := make(map[string]interface{})
 
 	for l := 1; l <= config.Loop; l++ {
@@ -62,9 +64,39 @@ func main() {
 			eventTime := time.Now().UTC().Format(time.RFC3339) // 2019-01-12T01:02:03Z
 			valueMap["event_time"] = eventTime
 
+			contextStr := "{"
+
 			for j, val := range row {
-				valueMap[header[j]], _ = strconv.ParseFloat(val, 64)
+				if config.Lot == j {
+					//contextMap["LOT_ID"] = val
+					contextStr += "\"" + "LOT_ID" + "\":" + "\"" + val + "\","
+				} else if config.Substrate == j {
+					//contextMap["SubstrateID"] = val
+					contextStr += "\"" + "SubstrateID" + "\":" + "\"" + val + "\","
+				} else if config.SubstType == j {
+					//contextMap["SubstType"] = val
+					contextStr += "\"" + "SubstType" + "\":" + "\"" + val + "\","
+				} else if config.SubstLocation == j {
+					//contextMap["SubstLocation"] = val
+					contextStr += "\"" + "SubstLocation" + "\":" + "\"" + val + "\","
+				} else if config.ProcessJob == j {
+					//contextMap["ProcessJobID"] = val
+					contextStr += "\"" + "ProcessJobID" + "\":" + "\"" + val + "\","
+				} else if config.ControlJob == j {
+					//contextMap["ControlJobID"] = val
+					contextStr += "\"" + "ControlJobID" + "\":" + "\"" + val + "\","
+				} else if config.RecipeName == j {
+					//contextMap["RecipeName"] = val
+					contextStr += "\"" + "RecipeName" + "\":" + "\"" + val + "\""
+				} else {
+					if config.StartIdx < j {
+						valueMap[header[j]], _ = strconv.ParseFloat(val, 64)
+					}
+				}
 			}
+			contextStr += "}"
+
+			valueMap["context"] = string(contextStr)
 
 			for _, assetName := range config.AssetList {
 
@@ -76,9 +108,9 @@ func main() {
 				go func(asset string, valueMap map[string]interface{}) {
 
 					valueMap["assetId"] = asset
-					valueMap["sensorType"] = "Pump"
-					valueMap["sensorName"] = asset
-					valueMap["sensorId"] = asset
+					valueMap["sensorType"] = config.SensorType
+					// valueMap["sensorName"] = config.SensorId
+					valueMap["sensorId"] = config.SensorId
 
 					mapString, _ := json.Marshal(valueMap)
 					message := string(mapString)
@@ -99,7 +131,8 @@ func main() {
 				}(assetName, targetMap)
 			}
 
-			time.Sleep(time.Second * 1)
+			u, _ := time.ParseDuration(config.Interval)
+			time.Sleep(u)
 		}
 	}
 }

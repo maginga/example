@@ -174,7 +174,6 @@ func main() {
 						Topic: config.Topic,
 						Value: sarama.StringEncoder(message),
 					}
-
 					partition, offset, err := producer.SendMessage(msg)
 					rowIndex++
 

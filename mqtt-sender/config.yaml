@@ -1,0 +1,4 @@
+mqttUrl: mqtt://192.168.100.199:1883/
+topic: test
+filePath: ./sensor.csv
+loop: 10000
