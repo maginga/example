@@ -11,6 +11,7 @@ import (
 	"os/signal"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"sync"
 	"syscall"
 	"time"
@@ -71,7 +72,8 @@ func main() {
 	job := func() {
 		log.Printf("job started. (base: %s, assets: %d)\n", baseTime, len(config.AssetList))
 
-		sql1 := fmt.Sprintf("UPDATE dbo.history SET sync02=1 WHERE sync02=0 AND ts >= '%s'", baseTime)
+		sql1 := fmt.Sprintf("UPDATE dbo.history SET sync02=1 WHERE sync02=0 AND ts >= '%s' ", baseTime)
+		sql1 += "AND ip IN ('" + strings.Join(config.IpAddress, "','") + "')"
 		r1, err := db.Exec(sql1)
 		if err != nil {
 			log.Panic(err)
@@ -82,10 +84,10 @@ func main() {
 		wg := sync.WaitGroup{}
 
 		// DB is safe to be used by multiple goroutines
-		for _, assetName := range config.AssetList {
+		for i, assetName := range config.AssetList {
 			wg.Add(1)
 
-			go func(assetName string) {
+			go func(idx int, assetName string) {
 				defer wg.Done()
 
 				sqlStatement, err := rdb.NewSQLStatement(dbHelper, config.Query)
@@ -94,7 +96,7 @@ func main() {
 				}
 				params := make(map[string]interface{})
 				params["status"] = 1
-				params["assetName"] = assetName
+				params["ip"] = config.IpAddress[idx]
 				params["startTime"] = baseTime
 
 				selQuery := sqlStatement.ToStatementSQL(params)
@@ -181,23 +183,26 @@ func main() {
 						log.Printf("[%s] FAILED to send message: %s\n", assetName, err)
 					} else {
 						if config.Debug {
-							log.Printf("[%s] sent (partition: %d,  offset: %d) - row: %d, (origin: %s, utc: %s)\n",
-								assetName, partition, offset, rowIndex, lastTime.Format(time.RFC3339), valueMap["event_time"])
+							log.Printf("[%s][%s] sent (partition: %d,  offset: %d) - row: %d, (origin: %s, utc: %s)\n",
+								assetName, config.IpAddress[idx], partition, offset, rowIndex, lastTime.Format(time.RFC3339), valueMap["event_time"])
 						}
 					}
 					time.Sleep(time.Duration(config.DelayMs) * time.Millisecond)
 				}
 
-				log.Printf("[%s] - [%d] rows sent. (last: %s)\n", assetName, rowIndex, lastTime.Format(time.RFC3339))
+				log.Printf("[%s][%s] - [%d] rows sent. (last: %s)\n",
+					assetName, config.IpAddress[idx], rowIndex, lastTime.Format(time.RFC3339))
+
 				if rowIndex <= 0 {
 					return
 				}
 
-			}(assetName)
+			}(i, assetName)
 		}
 		wg.Wait()
 
-		sql2 := fmt.Sprintf("UPDATE dbo.history SET sync02=2 WHERE sync02=1 AND ts >= '%s'", baseTime)
+		sql2 := fmt.Sprintf("UPDATE dbo.history SET sync02=2 WHERE sync02=1 AND ts >= '%s' ", baseTime)
+		sql2 += "AND ip IN ('" + strings.Join(config.IpAddress, "','") + "')"
 		r2, err := db.Exec(sql2)
 		if err != nil {
 			log.Panic(err)
@@ -206,14 +211,17 @@ func main() {
 		log.Printf("[%d] rows are changed. (state: 1 => 2)\n", rowAffected2)
 
 		// change the base time
-		bt, _ := time.Parse("2006-01-02 15:04:05", baseTime)
-		days := time.Now().Sub(bt).Hours() / 24
+		layout := "2006-01-02 15:04:05"
+		utc, _ := time.Parse(layout, baseTime)
+		loc, _ := time.LoadLocation(config.Timezone)
+		localTime := utc.In(loc)
+		days := time.Now().Sub(localTime).Hours() / 24
 		if days > 7.0 {
-			baseTime = bt.AddDate(0, 0, 5).Format("2006-01-02 15:04:05")
-			log.Printf("base time changed. (before: %s, after: %s)\n", bt.Format("2006-01-02 15:04:05"), baseTime)
+			baseTime = localTime.AddDate(0, 0, 5).Format(layout)
+			log.Printf("base time changed. (before: %s, after: %s)\n", localTime.Format(layout), baseTime)
 		}
 
-		log.Println("job finished.")
+		log.Printf("job finished. (base diff: %f)\n", days)
 	}
 
 	d, err := time.ParseDuration(config.RepeatInterval)

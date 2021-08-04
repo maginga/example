@@ -8,8 +8,9 @@ type Config struct {
 	Query          string   `yaml:"query"`
 	StartTime      string   `yaml:"startTime"`
 	SensorType     string   `yaml:"sensorType"`
+	IpAddress      []string `yaml:"ipAddress"`
 	AssetList      []string `yaml:"assetList"`
 	DelayMs        int      `yaml:"delayMs"`
 	Debug          bool     `yaml:"debug"`
-	AssetColName   string   `yaml:"assetColName"`
+	Timezone       string   `yaml:"timezone"`
 }
