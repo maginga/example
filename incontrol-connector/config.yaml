@@ -1,0 +1,8 @@
+localTimeZone: Asia/Seoul
+restUrl: http://localhost:5000/api/status/1
+scheduleIntervalSec: 1
+brokerUrl: ["poc02.westus.cloudapp.azure.com:9092"]
+topic: test
+assetName: Robot01
+sensorId: R01
+sensorType: default

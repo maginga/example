@@ -470,7 +470,7 @@ func (c *DruidClient) CreateTrace(nestID string) (string, error) {
 	and s.asset_id=g.asset_id
 	and s.id = j.sensor_id
 	and j.param_group_id = p.param_group_id
-	GROUP BY p.logical_type, p.data_type, p.physical_name`, nestID)
+	GROUP BY p.data_type, p.physical_name`, nestID)
 	if err != nil {
 		panic(err)
 	}
