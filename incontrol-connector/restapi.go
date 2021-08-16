@@ -12,7 +12,7 @@ type SensorData struct {
 }
 
 type DataValue struct {
-	Ai    []float64
+	Ai    []float32
 	Aiabh []bool
 	Aiabl []bool
 	Aialh []bool
@@ -43,12 +43,6 @@ func Call(url string) SensorData {
 
 	var sensorDataObj SensorData
 	json.Unmarshal(bodyBytes, &sensorDataObj)
-	log.Printf("API Response as struct %+v\n", sensorDataObj)
+	//log.Printf("API Response as struct %+v\n", sensorDataObj)
 	return sensorDataObj
-}
-
-func ReverseArray(data []SensorData) {
-	for i, j := 0, len(data)-1; i < j; i, j = i+1, j-1 {
-		data[i], data[j] = data[j], data[i]
-	}
 }

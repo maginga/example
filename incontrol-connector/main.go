@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"log"
+	"os"
 	"path/filepath"
 	"strconv"
 	"time"
@@ -23,50 +24,74 @@ func main() {
 		panic(err)
 	}
 
+	if config.Points < 1 {
+		log.Print("The number of data points must be at least one.")
+		os.Exit(0)
+	}
+
 	producer, err := newProducer(config.BrokerUrl)
 	if err != nil {
 		// Should not reach here
 		panic(err)
 	}
 
-	s := gocron.NewScheduler(time.UTC)
-	s.Every(config.ScheduleIntervalSec).Seconds().Do(func() {
-		// data can be acquired
-		sensorData := Call(config.RestUrl)
+	lastTime := time.Time{}
 
-		for _, row := range sensorData.Data {
-			valueMap := make(map[string]interface{})
-			valueMap["assetId"] = config.AssetName
-			valueMap["sensorType"] = config.SensorType
-			valueMap["sensorId"] = config.SensorId
+	schedTime := config.Points - 1
+	if config.Points <= 1 {
+		schedTime = 1
+	}
+
+	s := gocron.NewScheduler(time.UTC)
+	s.Every(schedTime).Seconds().Do(func() {
+		// data can be acquired
+		point := strconv.Itoa(config.Points)
+		sensorData := Call(config.RestUrl + point)
+
+		for i := range sensorData.Data {
+			value := sensorData.Data[len(sensorData.Data)-1-i]
 
 			timezone, _ := time.LoadLocation(config.LocalTimeZone)
-			t, err := ParseIn(row.Time, timezone)
+			sensorTime, err := ParseIn(value.Time, timezone)
 			if err != nil {
 				log.Printf("err: %v", err)
 			}
-			valueMap["event_time"] = t.UTC().Format(time.RFC3339)
 
-			for i, val := range row.Ai {
-				paramName := "analog_input_" + strconv.Itoa(i)
-				valueMap[paramName] = val
-			}
+			if lastTime.Before(sensorTime) {
+				valueMap := make(map[string]interface{})
+				valueMap["assetId"] = config.AssetName
+				valueMap["sensorType"] = config.SensorType
+				valueMap["sensorId"] = config.SensorId
+				valueMap["event_time"] = sensorTime.UTC().Format(time.RFC3339)
 
-			msgBytes, _ := json.Marshal(valueMap)
-			message := string(msgBytes)
-			msg := &sarama.ProducerMessage{
-				Topic: config.Topic,
-				Value: sarama.StringEncoder(message),
-			}
+				for i, val := range value.Ai {
+					paramName := "analog_input_" + strconv.Itoa(i+1)
+					valueMap[paramName] = val
+				}
 
-			log.Printf("[%s] msg: %s\n", config.AssetName, message)
+				msgBytes, _ := json.Marshal(valueMap)
+				message := string(msgBytes)
+				msg := &sarama.ProducerMessage{
+					Topic: config.Topic,
+					Value: sarama.StringEncoder(message),
+				}
 
-			partition, offset, err := producer.SendMessage(msg)
-			if err != nil {
-				log.Printf("%s > FAILED to send message: %s\n", config.AssetName, err)
+				log.Printf("[%s] [%d] msg: %s\n", config.AssetName, i, message)
+
+				partition, offset, err := producer.SendMessage(msg)
+				if err != nil {
+					log.Printf("[%s] > FAILED to send message: %s\n", config.AssetName, err)
+				} else {
+					log.Printf("[%s] > message sent to partition %d at offset %d\n", config.AssetName, partition, offset)
+				}
+
+				// for kafka
+				time.Sleep(time.Millisecond * 200)
 			} else {
-				log.Printf("%s > message sent to partition %d at offset %d\n", config.AssetName, partition, offset)
+				log.Print("This message has already been delivered.")
 			}
+
+			lastTime = sensorTime
 		}
 	})
 	// starts the scheduler and blocks current execution path

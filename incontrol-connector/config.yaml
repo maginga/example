@@ -1,8 +1,8 @@
-localTimeZone: Asia/Seoul
-restUrl: http://localhost:5000/api/status/1
-scheduleIntervalSec: 1
-brokerUrl: ["poc02.westus.cloudapp.azure.com:9092"]
+localTimeZone: US/Pacific #US/Pacific, US/Mountain, US/Central, US/Eastern
+restUrl: http://localhost:5000/api/status/
+points: 60
+brokerUrl: ["localhost:9092"]
 topic: test
-assetName: Robot01
-sensorId: R01
-sensorType: default
+assetName: Sensor01
+sensorId: Sensor01
+sensorType: Vibration
