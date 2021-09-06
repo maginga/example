@@ -2,9 +2,11 @@ package client
 
 import (
 	"bytes"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
 	"strings"
@@ -287,6 +289,7 @@ func (c *DruidClient) CreateAlarm() (string, error) {
 		]
 	  }`
 
+	log.Printf("alarm: %s", json)
 	buff := bytes.NewBufferString(json)
 	req, err := http.NewRequest("POST", c.url("/api/datasources"), buff)
 	if err != nil {
@@ -424,6 +427,7 @@ func (c *DruidClient) CreateScore(nestID string) (string, error) {
 		]
 	  }`
 
+	log.Printf("score: %s", json)
 	buff := bytes.NewBufferString(json)
 	req, err := http.NewRequest("POST", c.url("/api/datasources"), buff)
 	if err != nil {
@@ -452,114 +456,178 @@ func (c *DruidClient) CreateTrace(nestID string) (string, error) {
 	auth := "Bearer " + c.getAuth()
 	println(auth)
 
-	//url := fmt.Sprintf("%v", viper.Get("metadata.grandview-url"))
-	//db, err := sql.Open("mysql", url)
-	//if err != nil {
-	//	panic(err)
-	//}
-	//defer db.Close()
+	url := fmt.Sprintf("%v", viper.Get("metadata.grandview-url"))
+	db, err := sql.Open("mysql", url)
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
 
-	//var logicalType string
-	//var dataType string
-	//var physicalName string
-	// rows, err := db.Query(`SELECT p.data_type, p.physical_name
-	// FROM nest n, nest_egg g, sensor s, sensor_param_group_join j, parameter p
-	// WHERE n.id=g.nest_id
-	// and n.id=?
-	// and s.asset_id=g.asset_id
-	// and s.id = j.sensor_id
-	// and j.param_group_id = p.param_group_id
-	// GROUP BY p.data_type, p.physical_name`, nestID)
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// defer rows.Close()
+	var dataType string
+	var physicalName string
+	rows, err := db.Query(`SELECT p.data_type, p.physical_name
+	FROM nest n, nest_egg g, sensor s, sensor_param_group_join j, parameter p
+	WHERE n.id=g.nest_id
+	and n.id=?
+	and s.asset_id=g.asset_id
+	and s.id = j.sensor_id
+	and j.param_group_id = p.param_group_id
+	GROUP BY p.data_type, p.physical_name`, nestID)
+	if err != nil {
+		panic(err)
+	}
+	defer rows.Close()
 
-	// seq := 5
-	// var columns []string
-	// for rows.Next() {
-	// 	err := rows.Scan(&dataType, &physicalName)
-	// 	if err != nil {
-	// 		panic(err)
-	// 	}
+	seq := 5
+	var columns []string
+	for rows.Next() {
+		err := rows.Scan(&dataType, &physicalName)
+		if err != nil {
+			panic(err)
+		}
 
-	// 	str := `
-	// 	{
-	// 		"name": "` + physicalName + `",
-	// 		"type": "` + dataType + `",
-	// 		"role": "MEASURE",
-	// 		"seq": ` + fmt.Sprintf("%v", seq) + `
-	// 	  }`
+		str := `
+		{
+			"name": "` + physicalName + `",
+			"type": "` + dataType + `",
+			"role": "MEASURE",
+			"seq": ` + fmt.Sprintf("%v", seq) + `
+		  }`
 
-	// 	columns = append(columns, str)
-	// 	seq++
-	// }
-	// columnJSON := strings.Join(columns, ",")
+		columns = append(columns, str)
+		seq++
+	}
 
-	json := `{
-		"name": "apm_trace_` + strings.ReplaceAll(nestID, "-", "_") + `",
-		"dsType": "MASTER",
-		"connType": "ENGINE",
-		"srcType": "REALTIME",
-		"granularity": "SECOND",
-		"segGranularity": "DAY",
-		"ingestion": {
-		  "type": "realtime",
-		  "topic": "apm-trace-` + strings.ReplaceAll(nestID, "_", "-") + `",
-		  "consumerType": "KAFKA",
-		  "consumerProperties": {
-			"bootstrap.servers": "` + bootstrapServer + `"
-		  },
-		  "taskOptions": {
-			"useEarliestOffset": true
-		  },
-		  "format": {
-			"type": "json"
-		  },
-		  "rollup": false
-		},
-		"fields": [
-		  {
-			"name": "event_time",
-			"type": "TIMESTAMP",
-			"role": "TIMESTAMP",
-			"seq": 0,
-			"format": {
-			  "type": "time_format",
-			  "format": "yyyy-MM-dd'T'HH:mm:ss.SSSZ",
-			  "timeZone": "UTC",
-			  "locale": "en"
-			}
-		  },
-		  {
-			"name": "sensorType",
-			"type": "STRING",
-			"role": "DIMENSION",
-			"seq": 1
-		  },
-		  {
-			"name": "sensorId",
-			"type": "STRING",
-			"role": "DIMENSION",
-			"seq": 2
-		  },
-		  {
-			"name": "assetId",
-			"type": "STRING",
-			"role": "DIMENSION",
-			"seq": 3
-		  },
-		  {
-			"name": "context",
-			"type": "STRING",
-			"role": "DIMENSION",
-			"seq": 4
-		  }
-		]
-	  }`
+	var json string
 
-	// },` + columnJSON + `
+	if len(columns) > 0 {
+		columnJSON := strings.Join(columns, ",")
+		json = `{
+			"name": "apm_trace_` + strings.ReplaceAll(nestID, "-", "_") + `",
+			"dsType": "MASTER",
+			"connType": "ENGINE",
+			"srcType": "REALTIME",
+			"granularity": "SECOND",
+			"segGranularity": "DAY",
+			"ingestion": {
+			  "type": "realtime",
+			  "topic": "apm-trace-` + strings.ReplaceAll(nestID, "_", "-") + `",
+			  "consumerType": "KAFKA",
+			  "consumerProperties": {
+				"bootstrap.servers": "` + bootstrapServer + `"
+			  },
+			  "taskOptions": {
+				"useEarliestOffset": true
+			  },
+			  "format": {
+				"type": "json"
+			  },
+			  "rollup": false
+			},
+			"fields": [
+			  {
+				"name": "event_time",
+				"type": "TIMESTAMP",
+				"role": "TIMESTAMP",
+				"seq": 0,
+				"format": {
+				  "type": "time_format",
+				  "format": "yyyy-MM-dd'T'HH:mm:ss.SSSZ",
+				  "timeZone": "UTC",
+				  "locale": "en"
+				}
+			  },
+			  {
+				"name": "sensorType",
+				"type": "STRING",
+				"role": "DIMENSION",
+				"seq": 1
+			  },
+			  {
+				"name": "sensorId",
+				"type": "STRING",
+				"role": "DIMENSION",
+				"seq": 2
+			  },
+			  {
+				"name": "assetId",
+				"type": "STRING",
+				"role": "DIMENSION",
+				"seq": 3
+			  },
+			  {
+				"name": "context",
+				"type": "STRING",
+				"role": "DIMENSION",
+				"seq": 4
+			  },` + columnJSON + `
+			]
+		  }`
+	} else {
+		json = `{
+			"name": "apm_trace_` + strings.ReplaceAll(nestID, "-", "_") + `",
+			"dsType": "MASTER",
+			"connType": "ENGINE",
+			"srcType": "REALTIME",
+			"granularity": "SECOND",
+			"segGranularity": "DAY",
+			"ingestion": {
+			  "type": "realtime",
+			  "topic": "apm-trace-` + strings.ReplaceAll(nestID, "_", "-") + `",
+			  "consumerType": "KAFKA",
+			  "consumerProperties": {
+				"bootstrap.servers": "` + bootstrapServer + `"
+			  },
+			  "taskOptions": {
+				"useEarliestOffset": true
+			  },
+			  "format": {
+				"type": "json"
+			  },
+			  "rollup": false
+			},
+			"fields": [
+			  {
+				"name": "event_time",
+				"type": "TIMESTAMP",
+				"role": "TIMESTAMP",
+				"seq": 0,
+				"format": {
+				  "type": "time_format",
+				  "format": "yyyy-MM-dd'T'HH:mm:ss.SSSZ",
+				  "timeZone": "UTC",
+				  "locale": "en"
+				}
+			  },
+			  {
+				"name": "sensorType",
+				"type": "STRING",
+				"role": "DIMENSION",
+				"seq": 1
+			  },
+			  {
+				"name": "sensorId",
+				"type": "STRING",
+				"role": "DIMENSION",
+				"seq": 2
+			  },
+			  {
+				"name": "assetId",
+				"type": "STRING",
+				"role": "DIMENSION",
+				"seq": 3
+			  },
+			  {
+				"name": "context",
+				"type": "STRING",
+				"role": "DIMENSION",
+				"seq": 4
+			  }
+			]
+		  }`
+	}
 
+	log.Printf("trace: %s", json)
 	buff := bytes.NewBufferString(json)
 	req, err := http.NewRequest("POST", c.url("/api/datasources"), buff)
 	if err != nil {
