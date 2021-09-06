@@ -23,8 +23,8 @@ type DataValue struct {
 	Time  string
 }
 
-func Call(url string) SensorData {
-	client := &http.Client{}
+func Call(client *http.Client, url string) SensorData {
+	//client := &http.Client{}
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		log.Print(err.Error())

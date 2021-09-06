@@ -1,8 +1,8 @@
 localTimeZone: US/Pacific #US/Pacific, US/Mountain, US/Central, US/Eastern
-restUrl: http://localhost:5000/api/status/
+restUrl: http://68.10.56.28:5000/api/status/
 points: 60
-brokerUrl: ["localhost:9092"]
+brokerUrl: ["poc01.westus.cloudapp.azure.com:9092"]
 topic: test
-assetName: Sensor01
-sensorId: Sensor01
+assetName: SmartSensor01
+sensorId: SmartSensor01
 sensorType: Vibration

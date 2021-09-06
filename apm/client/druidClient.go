@@ -2,7 +2,6 @@ package client
 
 import (
 	"bytes"
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -453,50 +452,49 @@ func (c *DruidClient) CreateTrace(nestID string) (string, error) {
 	auth := "Bearer " + c.getAuth()
 	println(auth)
 
-	url := fmt.Sprintf("%v", viper.Get("metadata.grandview-url"))
-	db, err := sql.Open("mysql", url)
-	if err != nil {
-		panic(err)
-	}
-	defer db.Close()
+	//url := fmt.Sprintf("%v", viper.Get("metadata.grandview-url"))
+	//db, err := sql.Open("mysql", url)
+	//if err != nil {
+	//	panic(err)
+	//}
+	//defer db.Close()
 
 	//var logicalType string
-	var dataType string
-	var physicalName string
-	rows, err := db.Query(`SELECT p.data_type, p.physical_name 
-	FROM nest n, nest_egg g, sensor s, sensor_param_group_join j, parameter p
-	WHERE n.id=g.nest_id
-	and n.id=?
-	and s.asset_id=g.asset_id
-	and s.id = j.sensor_id
-	and j.param_group_id = p.param_group_id
-	GROUP BY p.data_type, p.physical_name`, nestID)
-	if err != nil {
-		panic(err)
-	}
-	defer rows.Close()
+	//var dataType string
+	//var physicalName string
+	// rows, err := db.Query(`SELECT p.data_type, p.physical_name
+	// FROM nest n, nest_egg g, sensor s, sensor_param_group_join j, parameter p
+	// WHERE n.id=g.nest_id
+	// and n.id=?
+	// and s.asset_id=g.asset_id
+	// and s.id = j.sensor_id
+	// and j.param_group_id = p.param_group_id
+	// GROUP BY p.data_type, p.physical_name`, nestID)
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// defer rows.Close()
 
-	seq := 5
-	var columns []string
-	for rows.Next() {
-		err := rows.Scan(&dataType, &physicalName)
-		if err != nil {
-			panic(err)
-		}
+	// seq := 5
+	// var columns []string
+	// for rows.Next() {
+	// 	err := rows.Scan(&dataType, &physicalName)
+	// 	if err != nil {
+	// 		panic(err)
+	// 	}
 
-		str := `
-		{
-			"name": "` + physicalName + `",
-			"type": "` + dataType + `",
-			"role": "MEASURE",
-			"seq": ` + fmt.Sprintf("%v", seq) + `
-		  }`
+	// 	str := `
+	// 	{
+	// 		"name": "` + physicalName + `",
+	// 		"type": "` + dataType + `",
+	// 		"role": "MEASURE",
+	// 		"seq": ` + fmt.Sprintf("%v", seq) + `
+	// 	  }`
 
-		columns = append(columns, str)
-		seq++
-	}
-
-	columnJSON := strings.Join(columns, ",")
+	// 	columns = append(columns, str)
+	// 	seq++
+	// }
+	// columnJSON := strings.Join(columns, ",")
 
 	json := `{
 		"name": "apm_trace_` + strings.ReplaceAll(nestID, "-", "_") + `",
@@ -556,9 +554,11 @@ func (c *DruidClient) CreateTrace(nestID string) (string, error) {
 			"type": "STRING",
 			"role": "DIMENSION",
 			"seq": 4
-		  },` + columnJSON + `
+		  }
 		]
 	  }`
+
+	// },` + columnJSON + `
 
 	buff := bytes.NewBufferString(json)
 	req, err := http.NewRequest("POST", c.url("/api/datasources"), buff)

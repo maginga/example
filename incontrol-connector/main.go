@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"log"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -42,11 +43,18 @@ func main() {
 		schedTime = 1
 	}
 
+	tr := &http.Transport{
+		MaxIdleConns:       10,
+		IdleConnTimeout:    30 * time.Second,
+		DisableCompression: true,
+	}
+	client := &http.Client{Transport: tr}
+
 	s := gocron.NewScheduler(time.UTC)
 	s.Every(schedTime).Seconds().Do(func() {
 		// data can be acquired
 		point := strconv.Itoa(config.Points)
-		sensorData := Call(config.RestUrl + point)
+		sensorData := Call(client, config.RestUrl+point)
 
 		for i := range sensorData.Data {
 			value := sensorData.Data[len(sensorData.Data)-1-i]

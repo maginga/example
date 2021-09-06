@@ -87,6 +87,13 @@ For example: apm create stream [refiner, alarm, paramalarm, fdc, spc, mva, bae, 
 					"--consumer-topic", "apm-trace-default-nest-01",
 					"--program-identifier", "parameter_refiner"}
 				opts.Parallelism = 1
+			} else if args[0] == "combiner" {
+				opts.EntryClass = "com.skt.apm.refinement.ParameterCombiner"
+				opts.ProgramArg = []string{"--job-name", nestID + "-Combiner",
+					"--specification-url", specURL,
+					"--merge-interval", "30000"}
+				//"--program-identifier", "alarm/asset"}
+				opts.Parallelism = 1
 			} else if args[0] == "alarm" {
 				opts.EntryClass = "com.skt.apm.alarm.asset.AssetAlarm"
 				opts.ProgramArg = []string{"--job-name", nestID + "-AssetAlarm",
