@@ -1,7 +1,7 @@
 localTimeZone: US/Pacific #US/Pacific, US/Mountain, US/Central, US/Eastern
-restUrl: http://68.10.56.28:5000/api/status/
+restUrl: http://localhost:5000/api/status/
 points: 60
-brokerUrl: ["poc01.westus.cloudapp.azure.com:9092"]
+brokerUrl: ["localhost:9093"]
 topic: test
 assetName: SmartSensor01
 sensorId: SmartSensor01
