@@ -42,40 +42,40 @@ func main() {
 		}
 	}()
 
-	for loop := 0; loop < 10000; loop++ {
+	for loop := 0; loop < 100000; loop++ {
 		var wait sync.WaitGroup
-		rNum := config.Assets
-		wait.Add(rNum)
+		wait.Add(len(config.AssetNumber))
 
 		msgList := mapTo(config.FileName)
 
-		for i := 0; i < rNum; i++ {
-			go func(i int, topic string, p *sarama.SyncProducer, messages []string) {
+		for _, assetNum := range config.AssetNumber {
+
+			assetName := config.AssetPrefix + assetNum
+			sensorId := "P" + assetNum
+
+			go func(assetName, sensorId, topic string, p *sarama.SyncProducer, messages []string) {
 				defer wait.Done()
 
 				for _, msg := range messages {
 					eventTime := time.Now().UTC().Format(time.RFC3339) // 2019-01-12T01:02:03Z
 					val := strings.Replace(msg, "$1", eventTime, 1)
-					val = strings.Replace(val, "$2", strconv.Itoa(i), 2)
-					//val = strings.Replace(val, "$3", strconv.Itoa(i), 2)
+					val = strings.Replace(val, "$2", assetName, 1)
+					val = strings.Replace(val, "$3", sensorId, 1)
 
-					log.Println("message: ", val)
+					log.Printf("[%s] - %s\n", assetName, val)
 					msg := &sarama.ProducerMessage{
 						Topic: topic,
 						Value: sarama.StringEncoder(val),
 					}
 
-					partition, offset, err := (*p).SendMessage(msg)
-					if err != nil {
-						log.Panic(err)
-					}
-					log.Printf("Message is stored in topic(%s)/partition(%d)/offset(%d)\n", topic, partition, offset)
-					log.Println("")
+					(*p).SendMessage(msg)
+					//log.Printf("Message is stored in topic(%s)/partition(%d)/offset(%d)\n", topic, partition, offset)
+					//log.Println("")
 
 					time.Sleep(time.Second * 1)
 				}
 
-			}(i, config.Topic, &producer, msgList)
+			}(assetName, sensorId, config.Topic, &producer, msgList)
 
 		}
 		wait.Wait()
@@ -109,10 +109,9 @@ func mapTo(f string) []string {
 		}
 
 		valueMap["event_time"] = "$1"
-		valueMap["assetId"] = "Pump$2"
-		valueMap["sensorId"] = "S$2"
-		//valueMap["sensorName"] = "S$3"
-		valueMap["sensorType"] = "Vibration"
+		valueMap["assetId"] = "$2"
+		valueMap["sensorId"] = "$3"
+		valueMap["sensorType"] = "IFM"
 
 		for j, val := range row {
 			f, _ := strconv.ParseFloat(val, 64)
