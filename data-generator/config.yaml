@@ -1,6 +1,7 @@
 brokerList: [localhost:9092]
 topic: apm-trace-default-nest-01
 maxRetry: 5
+intervalMs: 1000
 assetPrefix: Pump
 assetNumber: ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]
 fileName: ./sensor.csv

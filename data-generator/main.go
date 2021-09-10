@@ -72,7 +72,7 @@ func main() {
 					//log.Printf("Message is stored in topic(%s)/partition(%d)/offset(%d)\n", topic, partition, offset)
 					//log.Println("")
 
-					time.Sleep(time.Second * 1)
+					time.Sleep(time.Duration(config.IntervalMs) * time.Millisecond)
 				}
 
 			}(assetName, sensorId, config.Topic, &producer, msgList)
