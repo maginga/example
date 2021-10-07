@@ -1,0 +1,7 @@
+brokerUrl: ["10.0.0.8:9092"]
+assetList: ["Robot01"]
+topic: apm.asset.stream.trace
+filePath: ./sensor.csv
+interval: "1s"
+loop: 10000
+startColumn: 0

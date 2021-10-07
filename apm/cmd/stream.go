@@ -119,6 +119,7 @@ For example: apm create stream [refiner, alarm, paramalarm, fdc, spc, mva, bae, 
 					"--specification-url", specURL,
 					"--program-identifier", "spc",
 					"--reference-period", "120000",
+					"--interval-between-references", "600",
 					"--local-repository-location", "/var/tmp/flink/org/" + nestID + "/spc"}
 				opts.Parallelism = 1
 			} else if args[0] == "mva" {
@@ -164,6 +165,7 @@ For example: apm create stream [refiner, alarm, paramalarm, fdc, spc, mva, bae, 
 					"--specification-url", specURL,
 					"--program-identifier", "spc",
 					"--reference-period", "120000",
+					"--interval-between-references", "600",
 					"--local-repository-location", "/var/tmp/flink/fe/" + nestID + "/spc",
 					"--feature-based"}
 				opts.Parallelism = 1

@@ -1,4 +1,4 @@
-brokerUrl: ["localhost:9092"]
+brokerUrl: ["172.20.75.69:9092"]
 topic: apm-trace-default-nest-01
-logFolder: /log/1ASK4000
+logFolder: ./log/1ASK4000
 assetId: 1ASK4000
