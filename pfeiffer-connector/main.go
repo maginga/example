@@ -27,14 +27,20 @@ var baseTime string
 
 func loadConfig() (Config, error) {
 	filename, _ := filepath.Abs("./config.yaml")
-	yamlFile, err := ioutil.ReadFile(filename)
+	yamlFile, _ := ioutil.ReadFile(filename)
 	var config Config
-	err = yaml.Unmarshal(yamlFile, &config)
+	err := yaml.Unmarshal(yamlFile, &config)
 	return config, err
 }
 
 func main() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
+
+	defer func() {
+		if r := recover(); r != nil {
+			log.Println(r)
+		}
+	}()
 
 	config, err := loadConfig()
 	if err != nil {
@@ -70,6 +76,12 @@ func main() {
 	baseTime := config.StartTime
 
 	job := func() {
+		defer func() {
+			if r := recover(); r != nil {
+				log.Println(r)
+			}
+		}()
+
 		log.Printf("job started. (base: %s, assets: %d)\n", baseTime, len(config.AssetList))
 
 		sql1 := fmt.Sprintf("UPDATE dbo.history SET sync02=1 WHERE sync02=0 AND ts >= '%s' ", baseTime)
@@ -90,10 +102,10 @@ func main() {
 			go func(idx int, assetName string) {
 				defer wg.Done()
 
-				sqlStatement, err := rdb.NewSQLStatement(dbHelper, config.Query)
-				if err != nil {
-					log.Panic(err)
-				}
+				sqlStatement, _ := rdb.NewSQLStatement(dbHelper, config.Query)
+				// if err != nil {
+				// 	log.Panic(err)
+				// }
 				params := make(map[string]interface{})
 				params["status"] = 1
 				params["ip"] = config.IpAddress[idx]
@@ -106,15 +118,15 @@ func main() {
 				}
 				defer rows.Close()
 
-				columns, err := rows.Columns()
-				if err != nil {
-					log.Panic(err)
-				}
+				columns, _ := rows.Columns()
+				// if err != nil {
+				// 	log.Panic(err)
+				// }
 
-				columnTypes, err := rows.ColumnTypes()
-				if err != nil {
-					log.Panic(err)
-				}
+				columnTypes, _ := rows.ColumnTypes()
+				// if err != nil {
+				// 	log.Panic(err)
+				// }
 
 				var lastTime time.Time
 				rowIndex := 0
@@ -226,7 +238,7 @@ func main() {
 
 	d, err := time.ParseDuration(config.RepeatInterval)
 	if err != nil {
-		log.Fatalf("unable to parse repeat interval: %s", err.Error())
+		log.Printf("unable to parse repeat interval: %s", err.Error())
 		panic(err)
 	}
 
