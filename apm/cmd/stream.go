@@ -111,6 +111,7 @@ For example: apm create stream [refiner, alarm, paramalarm, fdc, spc, mva, bae, 
 				opts.ProgramArg = []string{"--job-name", nestID + "-fdc",
 					"--specification-url", specURL,
 					"--program-identifier", "fdc",
+					"--consumer-topic", "reg-default_nest_01",
 					"--local-repository-location", "/var/tmp/flink/org/" + nestID + "/fd"}
 				opts.Parallelism = 1
 			} else if args[0] == "spc" {
@@ -120,6 +121,7 @@ For example: apm create stream [refiner, alarm, paramalarm, fdc, spc, mva, bae, 
 					"--program-identifier", "spc",
 					"--reference-period", "120000",
 					"--interval-between-references", "600",
+					"--consumer-topic", "reg-default_nest_01",
 					"--local-repository-location", "/var/tmp/flink/org/" + nestID + "/spc"}
 				opts.Parallelism = 1
 			} else if args[0] == "mva" {
@@ -127,6 +129,7 @@ For example: apm create stream [refiner, alarm, paramalarm, fdc, spc, mva, bae, 
 				opts.ProgramArg = []string{"--job-name", nestID + "-mva",
 					"--specification-url", specURL,
 					"--program-identifier", "mva",
+					"--consumer-topic", "reg-default_nest_01",
 					"--local-repository-location", "/var/tmp/flink/org/" + nestID + "/mva"}
 				opts.Parallelism = 1
 			} else if args[0] == "bae" {
@@ -134,6 +137,7 @@ For example: apm create stream [refiner, alarm, paramalarm, fdc, spc, mva, bae, 
 				opts.ProgramArg = []string{"--job-name", nestID + "-bae",
 					"--specification-url", specURL,
 					"--program-identifier", "model/UNSUPERVISED",
+					"--consumer-topic", "reg-default_nest_01",
 					// "--reference-period", "1",
 					// "--allowable-time-boundary", "15",
 					"--local-repository-location", "/var/tmp/flink/org/" + nestID + "/bae"}
@@ -143,6 +147,7 @@ For example: apm create stream [refiner, alarm, paramalarm, fdc, spc, mva, bae, 
 				opts.ProgramArg = []string{"--job-name", nestID + "-current",
 					"--specification-url", specURL,
 					"--program-identifier", "current",
+					"--consumer-topic", "reg-default_nest_01",
 					"--local-repository-location", "/var/tmp/flink/org/" + nestID + "/current"}
 				opts.Parallelism = 1
 			} else if args[0] == "feature" {

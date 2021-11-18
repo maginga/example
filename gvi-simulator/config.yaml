@@ -1,0 +1,19 @@
+brokerList: [localhost:9092]
+topic: apm.asset.stream.trace
+paramSpecTopic: apm.asset.master.parameter
+modelSpecTopic: apm.asset.master.model
+modelAlarmSpecTopic: apm.asset.master.model.alarm
+paramAlarmSpecTopic: apm.asset.master.param.alarm
+featureSpecTopic: apm.asset.master.feature
+eventSpecTopic: apm.asset.master.event
+maxRetry: 5
+intervalMs: 1000
+assetPrefix: Pump
+assetNumber: ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]
+fileName: ./sensor.csv
+paramSpecFile: ./param-spec.txt
+modelSpecFile: ./modle-spec.txt
+modelAlarmSpecFile: ./model-alarm-spec.txt
+paramAlarmSpecFile: ./param-alarm-spec.txt
+eventSpecFile: ./event_group_spec.txt 
+featureSpecFile: ./feature_param_spec.txt

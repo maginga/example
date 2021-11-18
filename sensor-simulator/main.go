@@ -58,7 +58,8 @@ func main() {
 				continue
 			}
 
-			eventTime := time.Now().UTC().Format(time.RFC3339) // 2019-01-12T01:02:03Z
+			//eventTime := time.Now().UTC().Format(time.RFC3339) // 2019-01-12T01:02:03Z
+			eventTime := time.Now().UTC().Format("2006-01-02T15:04:05.000Z")
 			valueMap["event_time"] = eventTime
 
 			for c, val := range row {
@@ -78,7 +79,9 @@ func main() {
 				}
 
 				go func(asset string, valueMap map[string]interface{}) {
-					valueMap["asset_id"] = asset
+					valueMap["assetId"] = asset
+					valueMap["sensorType"] = config.SensorType
+					valueMap["sensorId"] = config.SensorId
 
 					mapString, _ := json.Marshal(valueMap)
 					message := string(mapString)
@@ -108,7 +111,7 @@ func main() {
 
 func newProducer(brokers []string) (sarama.SyncProducer, error) {
 	config := sarama.NewConfig()
-	config.Producer.Partitioner = sarama.NewRandomPartitioner
+	config.Producer.Partitioner = sarama.NewHashPartitioner
 	config.Producer.RequiredAcks = sarama.WaitForAll
 	config.Producer.Return.Successes = true
 	// The level of acknowledgement reliability needed from the broker.

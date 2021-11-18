@@ -1,5 +1,7 @@
 brokerUrl: ["10.0.0.8:9092"]
 assetList: ["Robot01"]
+sensorId: "S01"
+sensorType: "Vibration"
 topic: apm.asset.stream.trace
 filePath: ./sensor.csv
 interval: "1s"

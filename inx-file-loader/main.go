@@ -116,7 +116,7 @@ func waitForShutdown() {
 
 func newProducer(brokers []string) (sarama.SyncProducer, error) {
 	config := sarama.NewConfig()
-	config.Producer.Partitioner = sarama.NewRandomPartitioner
+	config.Producer.Partitioner = sarama.NewHashPartitioner
 	config.Producer.RequiredAcks = sarama.WaitForAll
 	config.Producer.Return.Successes = true
 	// The level of acknowledgement reliability needed from the broker.

@@ -174,7 +174,7 @@ func main() {
 
 					valueMap["assetId"] = assetName
 					valueMap["sensorId"] = assetName
-					valueMap["sensorName"] = assetName
+					//valueMap["sensorName"] = assetName
 					valueMap["sensorType"] = config.SensorType
 
 					mapString, _ := json.Marshal(valueMap)
