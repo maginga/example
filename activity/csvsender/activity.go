@@ -101,7 +101,8 @@ func (a *Activity) Eval(ctx activity.Context) (done bool, err error) {
 			valueMap := make(map[string]interface{})
 
 			if timeColIndex < 0 {
-				eventTime := time.Now().UTC().Format(time.RFC3339) // 2019-01-12T01:02:03Z
+				// eventTime := time.Now().UTC().Format(time.RFC3339) // 2019-01-12T01:02:03Z
+				eventTime := time.Now().UTC().Format("2006-01-02T15:04:05.000Z")
 				valueMap["event_time"] = eventTime
 			} else {
 				t, _ := ParseLocal(record[timeColIndex])
@@ -111,14 +112,14 @@ func (a *Activity) Eval(ctx activity.Context) (done bool, err error) {
 			valueMap["assetId"] = input.AssetName
 			valueMap["sensorType"] = input.SensorType
 			valueMap["sensorId"] = input.SensorName
-			valueMap["sensorName"] = input.SensorName
+			// valueMap["sensorName"] = input.SensorName
 
 			for i := range header {
 				if excludeColumns != nil && contains(excludeColumns, i) {
 					continue
 				} else {
 					if timeColIndex < 0 || timeColIndex != i {
-						f1, e := strconv.ParseFloat(record[i], 8)
+						f1, e := strconv.ParseFloat(record[i], 64)
 						if e == nil {
 							valueMap[header[i]] = f1
 						}

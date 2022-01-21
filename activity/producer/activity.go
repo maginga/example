@@ -99,7 +99,8 @@ func makeMessage(record string) string {
 	json.Unmarshal(b, &m)
 
 	if m["event_time"] == nil {
-		eventTime := time.Now().UTC().Format(time.RFC3339) // 2019-01-12T01:02:03Z
+		// eventTime := time.Now().UTC().Format(time.RFC3339) // 2019-01-12T01:02:03Z
+		eventTime := time.Now().UTC().Format("2006-01-02T15:04:05.000Z")
 		m["event_time"] = eventTime
 	}
 

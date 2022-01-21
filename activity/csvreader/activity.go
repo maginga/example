@@ -100,7 +100,8 @@ func (a *Activity) Eval(ctx activity.Context) (done bool, err error) {
 				if err != nil {
 					ctx.Logger().Errorf("err: %v", err)
 				}
-				valueMap["event_time"] = t.UTC().Format(time.RFC3339)
+				eventTime := time.Now().UTC().Format("2006-01-02T15:04:05.000Z")
+				valueMap["event_time"] = eventTime
 			}
 
 			valueMap["assetId"] = input.AssetName
